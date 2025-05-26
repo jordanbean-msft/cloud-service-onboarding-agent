@@ -1,6 +1,7 @@
 import json
 import logging
 from opentelemetry import trace
+from asyncio import Queue
 
 from semantic_kernel import Kernel
 from semantic_kernel.contents import StreamingFileReferenceContent, StreamingTextContent
@@ -20,6 +21,7 @@ from app.plugins.cloud_security_plugin import CloudSecurityPlugin
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
 from app.process_framework.processes.cloud_service_onboarding_process import build_process_cloud_service_onboarding
 from app.process_framework.steps.write_terraform import WriteTerraformState, WriteTerraformStep
+from app.routers.context import chat_context_var
 from app.services.dependencies import AIProjectClient
 
 logger = logging.getLogger("uvicorn.error")
@@ -32,6 +34,8 @@ async def create_thread(azure_ai_client: AIProjectClient):
 
 async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectClient):
     with tracer.start_as_current_span(name="build_chat_results"):
+        emit_event, _, queue = chat_context_var.get()
+
         cloud_security_agent = None
         try:        
             kernel = Kernel()
@@ -43,6 +47,7 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
                 kernel=kernel,
                 initial_event=KernelProcessEvent(id="Start", data=CloudServiceOnboardingParameters(
                     cloud_service_name=chat_input.content,
+                    emit_event=emit_event,
                 )),
             ) as process_context:
                 process_state = await process_context.get_state()
@@ -50,14 +55,14 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
                 for step in process_state.steps:
                     logger.debug(f"Step: {step.state.name}")
 
-                    yield json.dumps(
+                    await emit_event(json.dumps(
                         obj=ChatOutput(
                             content_type=ContentTypeEnum.MARKDOWN,
                             content=f"Step: {step.state.name} - {step.state.state.chat_history[-1].content}", # type: ignore
                             thread_id=chat_input.thread_id,
                         ),
                         default=serialize_chat_output,
-                    ) + "\n"  # Ensure each chunk ends with a newline
+                    ) + "\n")  # Ensure each chunk ends with a newline
 
         except Exception as e:
             logger.error(f"Error processing chat: {e}")
@@ -65,6 +70,7 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
             if cloud_security_agent is not None:
                 await azure_ai_client.agents.delete_agent(agent_id=cloud_security_agent.id)
 
+        await queue.put(None)
 async def get_agent_thread(chat_input, azure_ai_client, cloud_security_agent):
     thread_messages = await get_thread(ChatGetThreadInput(thread_id=chat_input.thread_id), azure_ai_client)
 

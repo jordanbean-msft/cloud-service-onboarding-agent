@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import logging
 from typing import Any, cast
@@ -25,6 +26,7 @@ from app.config import get_settings
 from app.models.chat_get_image import ChatGetImageInput
 from app.models.chat_get_image_contents import ChatGetImageContents
 from app.models.chat_create_thread_output import ChatCreateThreadOutput
+from app.routers.context import build_chat_context, chat_context_var
 from app.services.chat import build_chat_results, create_thread, get_thread
 from app.services.dependencies import AIProjectClientDependency 
 
@@ -83,7 +85,21 @@ async def get_image(thread_input: ChatGetImageInput, azure_ai_client: AIProjectC
 @tracer.start_as_current_span(name="chat")
 @router.post("/chat")
 async def post_chat(chat_input: ChatInput, azure_ai_client: AIProjectClientDependency):
+    emit_event, close, queue = build_chat_context()
+    chat_context_var.set((emit_event, close, queue))
+
+    task = asyncio.create_task(
+        build_chat_results(chat_input, azure_ai_client)
+    )
+
+    async def event_generator():
+        while True:
+            event = await queue.get()
+            if event is None:  # End of stream
+                break
+            yield f"{event}\n\n"
+
     return StreamingResponse(
-        build_chat_results(chat_input, azure_ai_client),
-        media_type="application/jsonlines"  # <-- Explicitly set streaming JSONL media type
+        event_generator(),
+        media_type="text/event-stream",
     )

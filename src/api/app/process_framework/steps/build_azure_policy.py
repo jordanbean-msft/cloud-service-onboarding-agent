@@ -1,4 +1,5 @@
 import asyncio
+import json
 from typing import ClassVar
 import logging
 from opentelemetry import trace
@@ -16,6 +17,8 @@ from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelPr
 #from semantic_kernel.processes.local_runtime import KernelProcessEvent, start
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 
+from app.models.chat_output import ChatOutput, serialize_chat_output
+from app.models.content_type_enum import ContentTypeEnum
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
 from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
 
@@ -90,6 +93,7 @@ You are a helpful assistant that builds Azure security policies. You will be giv
                     terraform_code=params.terraform_code,
                     chat_history=params.chat_history,
                     error_message=str(e),
+                    emit_event=params.emit_event
                 )
             )
             return
@@ -98,6 +102,15 @@ You are a helpful assistant that builds Azure security policies. You will be giv
 
         self.state.chat_history.add_assistant_message(final_response) # type: ignore
 
+        await params.emit_event(json.dumps(
+                        obj=ChatOutput(
+                            content_type=ContentTypeEnum.MARKDOWN,
+                            content=final_response,
+                            thread_id="asdf",
+                        ),
+                        default=serialize_chat_output,
+                    ) + "\n")
+        
         await context.emit_event(
             process_event=self.OutputEvents.BuildAzurePolicyComplete,
             data=CloudServiceOnboardingParameters(
@@ -108,6 +121,7 @@ You are a helpful assistant that builds Azure security policies. You will be giv
                 azure_policy=final_response,
                 terraform_code=params.terraform_code,
                 chat_history=params.chat_history,
+                emit_event=params.emit_event
             )
         )
     

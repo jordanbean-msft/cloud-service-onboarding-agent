@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 from typing import ClassVar
 from opentelemetry import trace
@@ -11,6 +12,8 @@ from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelPr
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.contents import ChatHistory
 
+from app.models.chat_output import ChatOutput, serialize_chat_output
+from app.models.content_type_enum import ContentTypeEnum
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
 from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
 
@@ -19,6 +22,7 @@ tracer = trace.get_tracer(__name__)
 
 class RetrieveInternalSecurityRecommendationsState(KernelBaseModel):
     chat_history: ChatHistory | None = None
+    #queue: asyncio.Queue | None = None
 
 @kernel_process_step_metadata("RetrieveInternalSecurityRecommendationsStep")
 class RetrieveInternalSecurityRecommendationsStep(KernelProcessStep[RetrieveInternalSecurityRecommendationsState]):
@@ -73,6 +77,7 @@ You are a helpful assistant that retrieves internal security recommendations for
                     terraform_code=params.terraform_code,
                     chat_history=params.chat_history,
                     error_message=str(e),
+                    emit_event=params.emit_event
                 )
             )
             return
@@ -80,6 +85,15 @@ You are a helpful assistant that retrieves internal security recommendations for
         logger.debug(f"Retrieve Internal Security Recommendations complete. Response: {final_response}")
 
         self.state.chat_history.add_assistant_message(final_response) # type: ignore
+        
+        await params.emit_event(json.dumps(
+                        obj=ChatOutput(
+                            content_type=ContentTypeEnum.MARKDOWN,
+                            content=final_response,
+                            thread_id="asdf",
+                        ),
+                        default=serialize_chat_output,
+                    ) + "\n")
 
         await context.emit_event(
             process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsComplete,
@@ -91,6 +105,7 @@ You are a helpful assistant that retrieves internal security recommendations for
                 azure_policy=params.azure_policy,
                 terraform_code=params.terraform_code,
                 chat_history=params.chat_history,
+                emit_event=params.emit_event
             )
         )
 
