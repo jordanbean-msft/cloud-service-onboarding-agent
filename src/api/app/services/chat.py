@@ -17,6 +17,7 @@ from app.models.chat_input import ChatInput
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
 from app.plugins.cloud_security_plugin import CloudSecurityPlugin
+from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
 from app.process_framework.processes.cloud_service_onboarding_process import build_process_cloud_service_onboarding
 from app.process_framework.steps.write_terraform import WriteTerraformState, WriteTerraformStep
 from app.services.dependencies import AIProjectClient
@@ -35,24 +36,26 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
         try:        
             kernel = Kernel()
 
-            cloud_security_agent = await create_cloud_security_agent(
-                client=azure_ai_client,
-                kernel=kernel
-            )
+            # cloud_security_agent = await create_cloud_security_agent(
+            #     client=azure_ai_client,
+            #     kernel=kernel
+            # )
 
             # kernel.add_plugin(
             #     plugin=CloudSecurityPlugin(
             #     ),
             #     plugin_name="cloud_security_plugin"
             # )           
-            thread = await get_agent_thread(chat_input, azure_ai_client, cloud_security_agent)
+            # thread = await get_agent_thread(chat_input, azure_ai_client, cloud_security_agent)
 
             process = build_process_cloud_service_onboarding()
 
             async with await start(
                 process=process,
                 kernel=kernel,
-                initial_event=KernelProcessEvent(id="Start", data=chat_input.content),
+                initial_event=KernelProcessEvent(id="Start", data=CloudServiceOnboardingParameters(
+                    cloud_service_name=chat_input.content,
+                )),
             ) as process_context:
                 process_state = await process_context.get_state()
 

@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import ClassVar
 from opentelemetry import trace
 from venv import logger
 from enum import StrEnum, auto
@@ -9,28 +10,36 @@ from pydantic import BaseModel
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata
 from semantic_kernel.kernel_pydantic import KernelBaseModel
+from semantic_kernel.contents import ChatHistory
 
-from app.process_framework.utilities import on_intermediate_message
+from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
+from app.process_framework.utilities.utilities import on_intermediate_message
 from app.services.agents import get_create_agent_manager
 
 logger  = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 class MakeSecurityRecommendationsState(KernelBaseModel):
-    security_recommendations: str
+    chat_history: ChatHistory | None = None
 
-class MakeSecurityRecommendationsParameters(BaseModel):
-    cloud_service_name: str
-    public_documentation: str
-    internal_security_recommendations: str
+# class MakeSecurityRecommendationsParameters(BaseModel):
+#     cloud_service_name: str
+#     public_documentation: str
+#     internal_security_recommendations: str
 
-class MakeSecurityRecommendationsOutput(BaseModel):
-    cloud_service_name: str
-    error_message: str
-    security_recommendations: str
+# class MakeSecurityRecommendationsOutput(BaseModel):
+#     cloud_service_name: str
+#     error_message: str
+#     security_recommendations: str
 
 @kernel_process_step_metadata("MakeSecurityRecommendationsStep")
 class MakeSecurityRecommendationsStep(KernelProcessStep):
+    state: MakeSecurityRecommendationsState = Field(default_factory=MakeSecurityRecommendationsState) # type: ignore
+
+    system_prompt: ClassVar[str] = """
+You are a helpful assistant that makes security recommendations for cloud services. You will be given a cloud service name, public documentation, and internal security recommendations. Your job is to make security recommendations based on the provided documentation and recommendations. The recommendations should be comprehensive and actionable.
+"""
+
     class Functions(StrEnum):
         MakeSecurityRecommendations = auto()
 
@@ -38,9 +47,16 @@ class MakeSecurityRecommendationsStep(KernelProcessStep):
         MakeSecurityRecommendationsComplete = auto()
         MakeSecurityRecommendationsError = auto()
 
+    async def activate(self, state: KernelProcessStepState[MakeSecurityRecommendationsState]):
+        self.state = state.state # type: ignore
+        if self.state.chat_history is None:
+            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
+        self.state.chat_history
+
     @tracer.start_as_current_span(Functions.MakeSecurityRecommendations)
     @kernel_function(name=Functions.MakeSecurityRecommendations)
-    async def run_analysis(self, context: KernelProcessStepContext, params: MakeSecurityRecommendationsParameters):
+    #async def make_security_recommendations(self, context: KernelProcessStepContext, params: MakeSecurityRecommendationsParameters):
+    async def make_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         logger.debug(f"Running analysis on cloud service: {params.cloud_service_name}")
         
         agent_manager = get_create_agent_manager()
@@ -64,14 +80,24 @@ class MakeSecurityRecommendationsStep(KernelProcessStep):
             ): 
                 final_response += response.content.content
         except Exception as e:
-            final_response = f"Error retrieving security documentation: {e}"
-            logger.error(f"Error retrieving security documentation: {e}")
+            final_response = f"Error making security recommendations: {e}"
+            logger.error(f"Error making security recommendations: {e}")
             await context.emit_event(
                 process_event=self.OutputEvents.MakeSecurityRecommendationsError,
-                data=MakeSecurityRecommendationsOutput(
+                # data=MakeSecurityRecommendationsOutput(
+                #     cloud_service_name=params.cloud_service_name,
+                #     error_message=str(e),
+                #     security_recommendations=""
+                # )
+                data=CloudServiceOnboardingParameters(
                     cloud_service_name=params.cloud_service_name,
+                    public_documentation=params.public_documentation,
+                    internal_security_recommendations=params.internal_security_recommendations,
+                    security_recommendations=params.security_recommendations,
+                    azure_policy=params.azure_policy,
+                    terraform_code=params.terraform_code,
+                    chat_history=params.chat_history,
                     error_message=str(e),
-                    security_recommendations=""
                 )
             )
 
@@ -81,15 +107,24 @@ class MakeSecurityRecommendationsStep(KernelProcessStep):
 
         await context.emit_event(
             process_event=self.OutputEvents.MakeSecurityRecommendationsComplete,
-            data=MakeSecurityRecommendationsOutput(
+            # data=MakeSecurityRecommendationsOutput(
+            #     cloud_service_name=params.cloud_service_name,
+            #     error_message="",
+            #     security_recommendations=final_response
+            # )
+            data=CloudServiceOnboardingParameters(
                 cloud_service_name=params.cloud_service_name,
-                error_message="",
-                security_recommendations=final_response
+                public_documentation=params.public_documentation,
+                internal_security_recommendations=params.internal_security_recommendations,
+                security_recommendations=final_response,
+                azure_policy=params.azure_policy,
+                terraform_code=params.terraform_code,
+                chat_history=params.chat_history,
             )
         )
 
 __all__ = [
     "MakeSecurityRecommendationsStep",
-    "MakeSecurityRecommendationsParameters",
-    "MakeSecurityRecommendationsOutput",
+    # "MakeSecurityRecommendationsParameters",
+    # "MakeSecurityRecommendationsOutput",
 ]

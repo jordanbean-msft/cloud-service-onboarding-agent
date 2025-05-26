@@ -54,32 +54,42 @@ async def setup_file_search_tool(client: AIProjectClient, kernel: Kernel) -> Fil
     return file_search_tool
 
 async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -> AzureAIAgent:
-    code_interpreter = CodeInterpreterTool()
 
-    file_search_tool = await setup_file_search_tool(client, kernel)
+    azure_ai_agent = None
+    
+    async for agent in client.agents.list_agents():
+        if agent.name == "cloud-security-agent":
+            logger.info(f"Found existing cloud-security-agent: {agent.id}")
+            azure_ai_agent = await client.agents.get_agent(agent.id)
+            break
 
-    bing = BingGroundingTool(connection_id=get_settings().bing_connection_name)
+    if not azure_ai_agent:
+        code_interpreter = CodeInterpreterTool()
 
-    toolset = ToolSet()
-    toolset.add(code_interpreter)
-    toolset.add(file_search_tool)
-    toolset.add(bing)
+        file_search_tool = await setup_file_search_tool(client, kernel)
 
-    agent_definition = await client.agents.create_agent(
-        model=get_settings().azure_openai_model_deployment_name,
-        name="cloud-security-agent",
-        instructions=f"""
-          You are a helpful assistant that can help onboard new cloud services. You will make security recommendations on how to secure cloud resources. You also help write Terraform code to deploy cloud resources securely. You can also search for relevant documentation and provide it to the user. You also write Azure Policy to enforce security best practices.
-        """,
-        toolset=toolset,
-    )
+        bing = BingGroundingTool(connection_id=get_settings().bing_connection_name)
 
-    agent = AzureAIAgent(
-        client=client,
-        definition=agent_definition,
-        kernel=kernel
-    )
+        toolset = ToolSet()
+        toolset.add(code_interpreter)
+        toolset.add(file_search_tool)
+        toolset.add(bing)
 
-    return agent
+        agent_definition = await client.agents.create_agent(
+            model=get_settings().azure_openai_model_deployment_name,
+            name="cloud-security-agent",
+            instructions=f"""
+            You are a helpful assistant that can help onboard new cloud services. You will make security recommendations on how to secure cloud resources. You also help write Terraform code to deploy cloud resources securely. You can also search for relevant documentation and provide it to the user. You also write Azure Policy to enforce security best practices.
+            """,
+            toolset=toolset,
+        )
+
+        azure_ai_agent = AzureAIAgent(
+            client=client,
+            definition=agent_definition,
+            kernel=kernel
+        )
+
+    return azure_ai_agent # type: ignore
 
 __all__ = ["create_cloud_security_agent"]
