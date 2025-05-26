@@ -1,47 +1,31 @@
 import asyncio
-from typing import ClassVar
 import logging
+from typing import ClassVar
 from opentelemetry import trace
 from enum import StrEnum, auto
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
-from semantic_kernel.processes import ProcessBuilder
 from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata
-#from semantic_kernel.processes.local_runtime import KernelProcessEvent, start
 from semantic_kernel.kernel_pydantic import KernelBaseModel
+from semantic_kernel.contents import ChatHistory
 
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.utilities.utilities import on_intermediate_message
-from app.services.agents import get_create_agent_manager
+from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
-# class WriteTerraformParameters(BaseModel):
-#     cloud_service_name: str
-#     internal_security_recommendations: str
-#     public_documentation: str
-
 class WriteTerraformState(KernelBaseModel):
     chat_history: ChatHistory | None = None
-
-# class WriteTerraformOutput(BaseModel):
-#     terraform_code: str
-#     error_message: str
 
 @kernel_process_step_metadata("WriteTerraformStep")
 class WriteTerraformStep(KernelProcessStep[WriteTerraformState]):
     state: WriteTerraformState = Field(default_factory=WriteTerraformState) # type: ignore
 
     system_prompt: ClassVar[str] = """
-You are a helpful assistant that writes Terraform code for cloud services. You will be given a cloud service name, public documentation, internal security recommendations, and security recommendations. Your job is to write Terraform code that implements the security recommendations based on the provided documentation and recommendations.
-The Terraform code should be easy to integrate into a Terraform module and should follow best practices for security and compliance.
+You are a helpful assistant that writes Terraform code for cloud services. You will be given a cloud service name, public documentation, internal security recommendations, and an Azure Policy. Your job is to write Terraform code that implements the Azure Policy and follows the recommendations.
 """
 
     class Functions(StrEnum):
@@ -49,6 +33,7 @@ The Terraform code should be easy to integrate into a Terraform module and shoul
 
     class OutputEvents(StrEnum):
         WriteTerraformComplete = auto()
+        WriteTerraformError = auto()
 
     async def activate(self, state: KernelProcessStepState[WriteTerraformState]):
         self.state = state.state # type: ignore
@@ -58,39 +43,27 @@ The Terraform code should be easy to integrate into a Terraform module and shoul
 
     @tracer.start_as_current_span(Functions.WriteTerraform)
     @kernel_function(name=Functions.WriteTerraform)
-    #async def write_terraform(self, context: KernelProcessStepContext, params: WriteTerraformParameters):
     async def write_terraform(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         logger.debug(f"Writing Terraform for cloud service: {params.cloud_service_name}")
 
-        agent_manager = get_create_agent_manager()
-        
-        agent = None
-        for a in agent_manager:
-            if a.name == "cloud-security-agent":
-                agent = a
-                break
+        if self.state.chat_history is None:
+            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
 
-        if not agent:
-            return f"cloud-security-agent not found."
+        self.state.chat_history.add_user_message(
+            f"Write Terraform code for {params.cloud_service_name}. The public documentation is {params.public_documentation}. The internal security recommendations are {params.internal_security_recommendations}. The Azure Policy is {params.azure_policy}."
+        ) # type: ignore
 
-        self.state.chat_history.add_user_message(f"Write Terraform code for {params.cloud_service_name}. Make sure and reference the public documentation {params.public_documentation} and internal security recommendations {params.internal_security_recommendations}. The Azure Policy to reference is {params.azure_policy}.") # type: ignore
-
-        final_response = ""
         try:
-            async for response in agent.invoke(
-                messages=self.state.chat_history.messages, # type: ignore
+            final_response = await call_agent(
+                agent_name="cloud-security-agent",
+                chat_history=self.state.chat_history,
                 on_intermediate_message=on_intermediate_message
-            ): 
-                final_response += response.content.content
+            )
         except Exception as e:
-            final_response = f"Error writing Terraform code: {e}"
-            logger.error(f"Error writing Terraform code: {e}")
+            final_response = f"Error writing Terraform: {e}"
+            logger.error(f"Error writing Terraform: {e}")
             await context.emit_event(
-                process_event=self.OutputEvents.WriteTerraformComplete,
-                # data=WriteTerraformOutput(
-                #     terraform_code="",
-                #     error_message=str(e)
-                # )
+                process_event=self.OutputEvents.WriteTerraformError,
                 data=CloudServiceOnboardingParameters(
                     cloud_service_name=params.cloud_service_name,
                     public_documentation=params.public_documentation,
@@ -102,17 +75,14 @@ The Terraform code should be easy to integrate into a Terraform module and shoul
                     error_message=str(e),
                 )
             )
+            return
 
-        logger.debug(f"Final response: {final_response}")
+        logger.debug(f"Writing Terraform complete. Response: {final_response}")
 
         self.state.chat_history.add_assistant_message(final_response) # type: ignore
 
         await context.emit_event(
             process_event=self.OutputEvents.WriteTerraformComplete,
-            # data=WriteTerraformOutput(
-            #     terraform_code=final_response,
-            #     error_message=""
-            # )
             data=CloudServiceOnboardingParameters(
                 cloud_service_name=params.cloud_service_name,
                 public_documentation=params.public_documentation,
@@ -123,9 +93,7 @@ The Terraform code should be easy to integrate into a Terraform module and shoul
                 chat_history=params.chat_history,
             )
         )
-    
+
 __all__ = [
     "WriteTerraformStep",
-    # "WriteTerraformParameters",
-    # "WriteTerraformOutput",
 ]

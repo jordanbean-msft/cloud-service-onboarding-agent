@@ -1,26 +1,17 @@
-import asyncio
-from typing import ClassVar
 import logging
 from opentelemetry import trace
-from enum import Enum
 
-from pydantic import BaseModel, Field
-
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-from semantic_kernel.contents import ChatHistory
-from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes import ProcessBuilder
-from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState
 from semantic_kernel.processes.kernel_process.kernel_process import KernelProcess
 
-from app.process_framework.steps import retrieve_public_documentation, write_terraform
 from app.process_framework.steps.build_azure_policy import BuildAzurePolicyStep
-from app.process_framework.steps.retrieve_internal_security_recommendations import RetrieveInternalSecurityRecommendations
+from app.process_framework.steps.retrieve_internal_security_recommendations import RetrieveInternalSecurityRecommendationsStep
 from app.process_framework.steps.make_security_recommendations import MakeSecurityRecommendationsStep
 from app.process_framework.steps.retrieve_public_documentation import RetrievePublicDocumentationStep
 from app.process_framework.steps.write_terraform import WriteTerraformStep
+
+logger = logging.getLogger("uvicorn.error")
+tracer = trace.get_tracer(__name__)
 
 def build_process_cloud_service_onboarding() -> KernelProcess:
       # Create the process builder
@@ -29,7 +20,7 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
     ) # type: ignore
 
     # Add the steps
-    retrieve_internal_security_recommendations = process_builder.add_step(RetrieveInternalSecurityRecommendations)
+    retrieve_internal_security_recommendations = process_builder.add_step(RetrieveInternalSecurityRecommendationsStep)
     retrieve_public_documentation_step = process_builder.add_step(RetrievePublicDocumentationStep)
     make_security_recommendation_step = process_builder.add_step(MakeSecurityRecommendationsStep)
     build_azure_policy_step = process_builder.add_step(BuildAzurePolicyStep)
@@ -42,7 +33,7 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
     )
 
     retrieve_internal_security_recommendations.on_event(
-        RetrieveInternalSecurityRecommendations.OutputEvents.InternalSecurityRecommendationsRetrieved
+        RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsComplete
     ).send_event_to(
         target=retrieve_public_documentation_step, 
         function_name=RetrievePublicDocumentationStep.Functions.RetrievePublicDocumentation, 
@@ -50,7 +41,7 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
     )
 
     retrieve_public_documentation_step.on_event(
-        RetrievePublicDocumentationStep.OutputEvents.PublicDocumentsRetrieved
+        RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationComplete
     ).send_event_to(
         target=make_security_recommendation_step, 
         function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations, 

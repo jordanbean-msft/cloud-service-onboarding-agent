@@ -17,8 +17,7 @@ from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelPr
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.utilities.utilities import on_intermediate_message
-from app.services.agents import get_create_agent_manager
+from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -64,35 +63,24 @@ You are a helpful assistant that builds Azure security policies. You will be giv
     async def build_azure_policy(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         logger.debug(f"Building Azure policy for cloud service: {params.cloud_service_name}")
 
-        agent_manager = get_create_agent_manager()
-        
-        agent = None
-        for a in agent_manager:
-            if a.name == "cloud-security-agent":
-                agent = a
-                break
+        if self.state.chat_history is None:
+            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
 
-        if not agent:
-            return f"cloud-security-agent not found."
+        self.state.chat_history.add_user_message(
+            f"Build Azure Policy for {params.cloud_service_name}. The public security recommendations are {params.public_documentation}. The internal security recommendations are {params.internal_security_recommendations}."
+        ) # type: ignore
 
-        self.state.chat_history.add_user_message(f"Build Azure Policy for {params.cloud_service_name}. The public security recommendations are {params.public_documentation}. The internal security recommendations are {params.internal_security_recommendations}.") # type: ignore
-
-        final_response = ""
         try:
-            async for response in agent.invoke(
-                messages=self.state.chat_history.messages, # type: ignore
+            final_response = await call_agent(
+                agent_name="cloud-security-agent",
+                chat_history=self.state.chat_history,
                 on_intermediate_message=on_intermediate_message
-            ): 
-                final_response += response.content.content
+            )
         except Exception as e:
             final_response = f"Error writing Azure Policy: {e}"
             logger.error(f"Error writing Azure Policy: {e}")
             await context.emit_event(
                 process_event=self.OutputEvents.BuildAzurePolicyError,
-                #data=BuildAzurePolicyOutput(
-                #    azure_policy="",
-                #    error_message=str(e)
-                #)
                 data=CloudServiceOnboardingParameters(
                     cloud_service_name=params.cloud_service_name,
                     public_documentation=params.public_documentation,
@@ -104,27 +92,24 @@ You are a helpful assistant that builds Azure security policies. You will be giv
                     error_message=str(e),
                 )
             )
+            return
 
-        logger.debug(f"Final response: {final_response}")
+        logger.debug(f"Building Azure Policy complete. Response: {final_response}")
 
         self.state.chat_history.add_assistant_message(final_response) # type: ignore
 
         await context.emit_event(
-                process_event=self.OutputEvents.BuildAzurePolicyComplete,
-                # data=BuildAzurePolicyOutput(
-                #     azure_policy=final_response,
-                #     error_message=""
-                # )
-                data=CloudServiceOnboardingParameters(
-                    cloud_service_name=params.cloud_service_name,
-                    public_documentation=params.public_documentation,
-                    internal_security_recommendations=params.internal_security_recommendations,
-                    security_recommendations=params.security_recommendations,
-                    azure_policy=final_response,
-                    terraform_code=params.terraform_code,
-                    chat_history=params.chat_history,
-                )
+            process_event=self.OutputEvents.BuildAzurePolicyComplete,
+            data=CloudServiceOnboardingParameters(
+                cloud_service_name=params.cloud_service_name,
+                public_documentation=params.public_documentation,
+                internal_security_recommendations=params.internal_security_recommendations,
+                security_recommendations=params.security_recommendations,
+                azure_policy=final_response,
+                terraform_code=params.terraform_code,
+                chat_history=params.chat_history,
             )
+        )
     
 __all__ = [
     "BuildAzurePolicyStep",

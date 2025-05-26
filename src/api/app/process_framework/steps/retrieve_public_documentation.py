@@ -1,52 +1,41 @@
+import asyncio
 import logging
-import time
 from typing import ClassVar
 from opentelemetry import trace
-from venv import logger
 from enum import StrEnum, auto
 
 from pydantic import Field
+
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.contents import ChatHistory
 
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.utilities.utilities import on_intermediate_message
-from app.services.agents import get_create_agent_manager
+from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
 
-logger  = logging.getLogger("uvicorn.error")
+logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
-# class RetrievePublicDocumentationParameters(KernelBaseModel):
-#     cloud_service_name: str
-#     internal_security_recommendations: str
-
-class RetrievePublicDocumentationStepState(KernelBaseModel):
+class RetrievePublicDocumentationState(KernelBaseModel):
     chat_history: ChatHistory | None = None
-    
-
-# class RetrievePublicDocumentationOutput(KernelBaseModel):
-#     public_documentation: str = ""
-#     error_message: str = ""
 
 @kernel_process_step_metadata("RetrievePublicDocumentationStep")
-class RetrievePublicDocumentationStep(KernelProcessStep):
-    state: RetrievePublicDocumentationStepState = Field(default_factory=RetrievePublicDocumentationStepState) # type: ignore
+class RetrievePublicDocumentationStep(KernelProcessStep[RetrievePublicDocumentationState]):
+    state: RetrievePublicDocumentationState = Field(default_factory=RetrievePublicDocumentationState) # type: ignore
 
     system_prompt: ClassVar[str] = """
-You are a helpful assistant that retrieves public documentation for cloud services. You will be given a cloud service name and internal security recommendations. Your job is to retrieve relevant public documentation based on the provided information.
-You will need to search for relevant security recommendations based upon the internal security recommendations provided.
+You are a helpful assistant that retrieves public documentation for cloud services. You will be given a cloud service name. Your job is to find and summarize the most relevant public documentation for that service.
 """
 
     class Functions(StrEnum):
         RetrievePublicDocumentation = auto()
 
     class OutputEvents(StrEnum):
-        PublicDocumentsRetrieved = auto()
-        PublicDocumentsError = auto()
+        RetrievePublicDocumentationComplete = auto()
+        RetrievePublicDocumentationError = auto()
 
-    async def activate(self, state: KernelProcessStepState[RetrievePublicDocumentationStepState]):
+    async def activate(self, state: KernelProcessStepState[RetrievePublicDocumentationState]):
         self.state = state.state # type: ignore
         if self.state.chat_history is None:
             self.state.chat_history = ChatHistory(system_message=self.system_prompt)
@@ -54,38 +43,27 @@ You will need to search for relevant security recommendations based upon the int
 
     @tracer.start_as_current_span(Functions.RetrievePublicDocumentation)
     @kernel_function(name=Functions.RetrievePublicDocumentation)
-    #async def retrieve_public_documentation(self, context: KernelProcessStepContext, params: RetrievePublicDocumentationParameters):
     async def retrieve_public_documentation(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         logger.debug(f"Retrieving public documentation for cloud service: {params.cloud_service_name}")
 
-        agent_manager = get_create_agent_manager()
-        
-        agent = None
-        for a in agent_manager:
-            if a.name == "cloud-security-agent":
-                agent = a
-                break
+        if self.state.chat_history is None:
+            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
 
-        if not agent:
-            return f"cloud-security-agent not found."
+        self.state.chat_history.add_user_message(
+            f"Retrieve and summarize public documentation for {params.cloud_service_name}."
+        ) # type: ignore
 
-        self.state.chat_history.add_user_message(f"Retrieve public Azure security documentation for {params.cloud_service_name}. You will need to search for relevant security recommendations based upon {params.internal_security_recommendations}") # type: ignore
-
-        final_response = ""
         try:
-            async for response in agent.invoke(
-                messages=self.state.chat_history.messages, # type: ignore
+            final_response = await call_agent(
+                agent_name="cloud-security-agent",
+                chat_history=self.state.chat_history,
                 on_intermediate_message=on_intermediate_message
-            ): 
-                final_response += response.content.content
+            )
         except Exception as e:
-            final_response = f"Error retrieving public security documentation: {e}"
-            logger.error(f"Error retrieving public security documentation: {e}")
+            final_response = f"Error retrieving public documentation: {e}"
+            logger.error(f"Error retrieving public documentation: {e}")
             await context.emit_event(
-                process_event=self.OutputEvents.PublicDocumentsError,
-                # data=RetrievePublicDocumentationOutput(
-                #     error_message=str(e)
-                # )
+                process_event=self.OutputEvents.RetrievePublicDocumentationError,
                 data=CloudServiceOnboardingParameters(
                     cloud_service_name=params.cloud_service_name,
                     public_documentation=params.public_documentation,
@@ -97,17 +75,14 @@ You will need to search for relevant security recommendations based upon the int
                     error_message=str(e),
                 )
             )
+            return
 
-        logger.debug(f"Final response: {final_response}")
+        logger.debug(f"Retrieve Public Documentation complete. Response: {final_response}")
 
         self.state.chat_history.add_assistant_message(final_response) # type: ignore
 
         await context.emit_event(
-            process_event=self.OutputEvents.PublicDocumentsRetrieved,
-            # data=RetrievePublicDocumentationOutput(
-            #     public_documentation=final_response,
-            #     error_message=""
-            # )
+            process_event=self.OutputEvents.RetrievePublicDocumentationComplete,
             data=CloudServiceOnboardingParameters(
                 cloud_service_name=params.cloud_service_name,
                 public_documentation=final_response,
@@ -121,6 +96,4 @@ You will need to search for relevant security recommendations based upon the int
 
 __all__ = [
     "RetrievePublicDocumentationStep",
-    # "RetrievePublicDocumentationParameters",
-    # "RetrievePublicDocumentationOutput",
 ]

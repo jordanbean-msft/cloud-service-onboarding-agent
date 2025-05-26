@@ -13,8 +13,7 @@ from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.contents import ChatHistory
 
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.utilities.utilities import on_intermediate_message
-from app.services.agents import get_create_agent_manager
+from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
 
 logger  = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -55,40 +54,27 @@ You are a helpful assistant that makes security recommendations for cloud servic
 
     @tracer.start_as_current_span(Functions.MakeSecurityRecommendations)
     @kernel_function(name=Functions.MakeSecurityRecommendations)
-    #async def make_security_recommendations(self, context: KernelProcessStepContext, params: MakeSecurityRecommendationsParameters):
     async def make_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         logger.debug(f"Running analysis on cloud service: {params.cloud_service_name}")
-        
-        agent_manager = get_create_agent_manager()
-        
-        agent = None
-        for a in agent_manager:
-            if a.name == "cloud-security-agent":
-                agent = a
-                break
 
-        if not agent:
-            return f"cloud-security-agent not found."
+        if self.state.chat_history is None:
+            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
 
-        self.state.chat_history.add_user_message(f"Make security recommendations for {params.cloud_service_name}. The public documentation is {params.public_documentation}. The internal security recommendations are {params.internal_security_recommendations}.") # type: ignore
+        self.state.chat_history.add_user_message(
+            f"Make security recommendations for {params.cloud_service_name}. The public documentation is {params.public_documentation}. The internal security recommendations are {params.internal_security_recommendations}."
+        ) # type: ignore
 
-        final_response = ""
         try:
-            async for response in agent.invoke(
-                messages=self.state.chat_history.messages, # type: ignore
+            final_response = await call_agent(
+                agent_name="cloud-security-agent",
+                chat_history=self.state.chat_history,
                 on_intermediate_message=on_intermediate_message
-            ): 
-                final_response += response.content.content
+            )
         except Exception as e:
             final_response = f"Error making security recommendations: {e}"
             logger.error(f"Error making security recommendations: {e}")
             await context.emit_event(
                 process_event=self.OutputEvents.MakeSecurityRecommendationsError,
-                # data=MakeSecurityRecommendationsOutput(
-                #     cloud_service_name=params.cloud_service_name,
-                #     error_message=str(e),
-                #     security_recommendations=""
-                # )
                 data=CloudServiceOnboardingParameters(
                     cloud_service_name=params.cloud_service_name,
                     public_documentation=params.public_documentation,
@@ -100,18 +86,14 @@ You are a helpful assistant that makes security recommendations for cloud servic
                     error_message=str(e),
                 )
             )
+            return
 
-        logger.debug(f"Final response: {final_response}")
+        logger.debug(f"Make Security Recommendations complete. Response: {final_response}")
 
         self.state.chat_history.add_assistant_message(final_response) # type: ignore
 
         await context.emit_event(
             process_event=self.OutputEvents.MakeSecurityRecommendationsComplete,
-            # data=MakeSecurityRecommendationsOutput(
-            #     cloud_service_name=params.cloud_service_name,
-            #     error_message="",
-            #     security_recommendations=final_response
-            # )
             data=CloudServiceOnboardingParameters(
                 cloud_service_name=params.cloud_service_name,
                 public_documentation=params.public_documentation,
