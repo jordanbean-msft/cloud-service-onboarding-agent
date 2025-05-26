@@ -1,0 +1,14 @@
+stateDiagram-v2
+    [*] -->  request_for_new_cloud_service_onboarding
+    request_for_new_cloud_service_onboarding --> API
+    API --> cloud_service_onboarding_process
+    state cloud_service_onboarding_process {
+        [*] --> retrieve_public_documentation
+
+        retrieve_public_documentation --> retrieve_security_documentation
+        retrieve_security_documentation --> make_security_recommendations
+        make_security_recommendations --> build_azure_policy
+        build_azure_policy --> write_terraform
+    }
+    write_terraform --> update_ui
+    update_ui --> [*]
