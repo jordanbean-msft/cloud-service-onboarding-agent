@@ -5,7 +5,7 @@ from opentelemetry import trace
 from venv import logger
 from enum import StrEnum, auto
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata

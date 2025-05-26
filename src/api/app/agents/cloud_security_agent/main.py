@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 from pydoc import cli
 
+from httpx import get
 from semantic_kernel import Kernel
 from semantic_kernel.agents import AzureAIAgent
 from azure.ai.agents.models import (
@@ -12,7 +13,8 @@ from azure.ai.agents.models import (
     FilePurpose,
     ResponseFormatJsonSchema,
     ResponseFormatJsonSchemaType,
-    BingGroundingTool
+    BingGroundingTool,
+    BingCustomSearchTool
 )
 
 from app.config import get_settings
@@ -56,11 +58,16 @@ async def setup_file_search_tool(client: AIProjectClient, kernel: Kernel) -> Fil
 async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -> AzureAIAgent:
 
     azure_ai_agent = None
-    
+
     async for agent in client.agents.list_agents():
         if agent.name == "cloud-security-agent":
             logger.info(f"Found existing cloud-security-agent: {agent.id}")
-            azure_ai_agent = await client.agents.get_agent(agent.id)
+            agent = await client.agents.get_agent(agent.id)
+            azure_ai_agent = AzureAIAgent(
+                client=client,
+                definition=agent,
+                kernel=kernel
+            )
             break
 
     if not azure_ai_agent:
@@ -68,12 +75,20 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
 
         file_search_tool = await setup_file_search_tool(client, kernel)
 
-        bing = BingGroundingTool(connection_id=get_settings().bing_connection_name)
-
         toolset = ToolSet()
+        async for connection in client.connections.list():
+            if connection.name == get_settings().bing_connection_name:
+                logger.info(f"Found existing Bing connection: {connection.id}")
+                #bing_grounding_tool = BingGroundingTool(connection_id=connection.id)
+                bing_custom_tool = BingCustomSearchTool(
+                    connection_id=connection.id,
+                    instance_name=get_settings().bing_instance_name
+                )
+                toolset.add(bing_custom_tool)
+                break
+
         toolset.add(code_interpreter)
         toolset.add(file_search_tool)
-        toolset.add(bing)
 
         agent_definition = await client.agents.create_agent(
             model=get_settings().azure_openai_model_deployment_name,
@@ -90,6 +105,6 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
             kernel=kernel
         )
 
-    return azure_ai_agent # type: ignore
+    return azure_ai_agent
 
 __all__ = ["create_cloud_security_agent"]

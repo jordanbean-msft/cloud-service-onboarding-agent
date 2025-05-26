@@ -59,25 +59,37 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
             ) as process_context:
                 process_state = await process_context.get_state()
 
-                write_terraform_state: KernelProcessStepState[WriteTerraformState] = next(
-                    (s.state for s in process_state.steps if s.state.name == WriteTerraformStep.__name__), None
-                ) # type: ignore
+                for step in process_state.steps:
+                    logger.debug(f"Step: {step.state.name}")
 
-                if write_terraform_state:
-                    logger.debug(f"Write Terraform state: {write_terraform_state}")
-
-                    final_result = ChatOutput(
-                        content_type=ContentTypeEnum.MARKDOWN,
-                        content=write_terraform_state.state.final_answer.strip(), # type: ignore
-                        thread_id="asdf",
-                    )
-
-                    final_result_str = json.dumps(
-                        obj=final_result,
+                    yield json.dumps(
+                        obj=ChatOutput(
+                            content_type=ContentTypeEnum.MARKDOWN,
+                            content=f"Step: {step.state.name} - {step.state.state.chat_history[-1].content}", # type: ignore
+                            thread_id=chat_input.thread_id,
+                        ),
                         default=serialize_chat_output,
                     )
 
-                    yield final_result_str
+                # write_terraform_state: KernelProcessStepState[WriteTerraformState] = next(
+                #     (s.state for s in process_state.steps if s.state.name == WriteTerraformStep.__name__), None
+                # ) # type: ignore
+
+                # if write_terraform_state:
+                #     logger.debug(f"Write Terraform state: {write_terraform_state}")
+
+                #     final_result = ChatOutput(
+                #         content_type=ContentTypeEnum.MARKDOWN,
+                #         content=write_terraform_state.state.final_answer.strip(), # type: ignore
+                #         thread_id="asdf",
+                #     )
+
+                #     final_result_str = json.dumps(
+                #         obj=final_result,
+                #         default=serialize_chat_output,
+                #     )
+
+                #     yield final_result_str
 
                     # for item in response.items:
                     #   if isinstance(item, StreamingTextContent):
@@ -102,9 +114,6 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
                     #       logger.warning(f"Unknown content type: {type(item)}")
 
                     #await send_message("asdf", final_result_str)
-
-                else:
-                    logger.error("Final recommendation step not found in process state.")
                  
             # async for response in cloud_security_agent.invoke_stream(
             #         thread=thread,

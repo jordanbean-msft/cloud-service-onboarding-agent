@@ -7,3 +7,4 @@ azure-monitor-opentelemetry-exporter==1.0.0b36
 python-multipart==0.0.20
 azure-identity==1.23.0
 async-lru==2.0.5
+azure-ai-agents==1.1.0b1
