@@ -32,7 +32,15 @@ def chat(thread_id,
                                timeout=300
                 )
 
-    yield from (event.decode('utf-8') for event in response)
+    buffer = ""
+    for chunk in response.iter_content(chunk_size=None):
+        if not chunk:
+            continue
+        buffer += chunk.decode('utf-8')
+        while '\n' in buffer:
+            line, buffer = buffer.split('\n', 1)
+            if line.strip():
+                yield line  # Each line is a complete JSON object
 
 def get_thread(thread_id):
     get_thread_input = ChatGetThreadInput(thread_id=thread_id)

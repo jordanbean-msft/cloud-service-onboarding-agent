@@ -83,4 +83,7 @@ async def get_image(thread_input: ChatGetImageInput, azure_ai_client: AIProjectC
 @tracer.start_as_current_span(name="chat")
 @router.post("/chat")
 async def post_chat(chat_input: ChatInput, azure_ai_client: AIProjectClientDependency):
-    return StreamingResponse(build_chat_results(chat_input, azure_ai_client))
+    return StreamingResponse(
+        build_chat_results(chat_input, azure_ai_client),
+        media_type="application/jsonlines"  # <-- Explicitly set streaming JSONL media type
+    )

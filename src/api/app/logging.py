@@ -27,7 +27,7 @@ from app.config import get_settings
 connection_string = get_settings().application_insights_connection_string
 
 # Create a resource to represent the service/sample
-resource = Resource.create({ResourceAttributes.SERVICE_NAME: "sk-agents-pf-fastapi"})
+resource = Resource.create({ResourceAttributes.SERVICE_NAME: "cloud-service-onboarding-agent"})
 
 
 def set_up_logging():
@@ -49,7 +49,7 @@ def set_up_logging():
     # Events from all child loggers will be processed by this handler.
     logger = logging.getLogger()
     logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.NOTSET)
 
 
 def set_up_tracing():

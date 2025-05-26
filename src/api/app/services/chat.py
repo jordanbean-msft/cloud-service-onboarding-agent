@@ -6,7 +6,7 @@ from semantic_kernel import Kernel
 from semantic_kernel.contents import StreamingFileReferenceContent, StreamingTextContent
 from semantic_kernel.agents import AzureAIAgentThread
 
-from semantic_kernel.processes.kernel_process import KernelProcessEvent, KernelProcessStepState
+from semantic_kernel.processes.kernel_process import KernelProcessEvent, KernelProcessStepState, KernelProcess
 from semantic_kernel.processes.local_runtime.local_kernel_process import start
 from azure.ai.agents.models import ThreadMessageOptions
 from app.agents import cloud_security_agent
@@ -26,27 +26,15 @@ logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 async def create_thread(azure_ai_client: AIProjectClient):
-        thread = await azure_ai_client.agents.threads.create()
+    thread = await azure_ai_client.agents.threads.create()
 
-        return ChatCreateThreadOutput(thread_id=thread.id)
+    return ChatCreateThreadOutput(thread_id=thread.id)
 
 async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectClient):
     with tracer.start_as_current_span(name="build_chat_results"):
         cloud_security_agent = None
         try:        
             kernel = Kernel()
-
-            # cloud_security_agent = await create_cloud_security_agent(
-            #     client=azure_ai_client,
-            #     kernel=kernel
-            # )
-
-            # kernel.add_plugin(
-            #     plugin=CloudSecurityPlugin(
-            #     ),
-            #     plugin_name="cloud_security_plugin"
-            # )           
-            # thread = await get_agent_thread(chat_input, azure_ai_client, cloud_security_agent)
 
             process = build_process_cloud_service_onboarding()
 
@@ -69,79 +57,8 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
                             thread_id=chat_input.thread_id,
                         ),
                         default=serialize_chat_output,
-                    )
+                    ) + "\n"  # Ensure each chunk ends with a newline
 
-                # write_terraform_state: KernelProcessStepState[WriteTerraformState] = next(
-                #     (s.state for s in process_state.steps if s.state.name == WriteTerraformStep.__name__), None
-                # ) # type: ignore
-
-                # if write_terraform_state:
-                #     logger.debug(f"Write Terraform state: {write_terraform_state}")
-
-                #     final_result = ChatOutput(
-                #         content_type=ContentTypeEnum.MARKDOWN,
-                #         content=write_terraform_state.state.final_answer.strip(), # type: ignore
-                #         thread_id="asdf",
-                #     )
-
-                #     final_result_str = json.dumps(
-                #         obj=final_result,
-                #         default=serialize_chat_output,
-                #     )
-
-                #     yield final_result_str
-
-                    # for item in response.items:
-                    #   if isinstance(item, StreamingTextContent):
-                    #       yield json.dumps(
-                    #           obj=ChatOutput(
-                    #               content_type=ContentTypeEnum.MARKDOWN,
-                    #               content=response.content.content,
-                    #               thread_id=str(response.thread.id),
-                    #           ),
-                    #           default=serialize_chat_output,                    
-                    #       )
-                    #   elif isinstance(item, StreamingFileReferenceContent):
-                    #       yield json.dumps(
-                    #           obj=ChatOutput(
-                    #               content_type=ContentTypeEnum.FILE,
-                    #               content=item.file_id if item.file_id else "",
-                    #               thread_id=str(response.thread.id),
-                    #           ),
-                    #           default=serialize_chat_output,                    
-                    #       )
-                    #   else:
-                    #       logger.warning(f"Unknown content type: {type(item)}")
-
-                    #await send_message("asdf", final_result_str)
-                 
-            # async for response in cloud_security_agent.invoke_stream(
-            #         thread=thread,
-            #         messages=chat_input.content
-            # ):
-            #     for item in response.items:
-            #         if isinstance(item, StreamingTextContent):
-            #             yield json.dumps(
-            #                 obj=ChatOutput(
-            #                     content_type=ContentTypeEnum.MARKDOWN,
-            #                     content=response.content.content,
-            #                     thread_id=str(response.thread.id),
-            #                 ),
-            #                 default=serialize_chat_output,                    
-            #             )
-            #         elif isinstance(item, StreamingFileReferenceContent):
-            #             yield json.dumps(
-            #                 obj=ChatOutput(
-            #                     content_type=ContentTypeEnum.FILE,
-            #                     content=item.file_id if item.file_id else "",
-            #                     thread_id=str(response.thread.id),
-            #                 ),
-            #                 default=serialize_chat_output,                    
-            #             )
-            #         else:
-            #             logger.warning(f"Unknown content type: {type(item)}")
-            
-            # await azure_ai_client.agents.delete_agent(agent_id=cloud_security_agent.id)
         except Exception as e:
             logger.error(f"Error processing chat: {e}")
 
