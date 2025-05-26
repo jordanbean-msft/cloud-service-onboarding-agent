@@ -17,7 +17,7 @@ from semantic_kernel.processes.kernel_process.kernel_process import KernelProces
 
 from app.process_framework.steps import retrieve_public_documentation, write_terraform
 from app.process_framework.steps.build_azure_policy import BuildAzurePolicyStep
-from app.process_framework.steps.retrieve_security_documentation import RetrieveSecurityDocumentationStep
+from app.process_framework.steps.retrieve_internal_security_recommendations import RetrieveInternalSecurityRecommendations
 from app.process_framework.steps.make_security_recommendations import MakeSecurityRecommendationsStep
 from app.process_framework.steps.retrieve_public_documentation import RetrievePublicDocumentationStep
 from app.process_framework.steps.write_terraform import WriteTerraformStep
@@ -29,28 +29,28 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
     ) # type: ignore
 
     # Add the steps
+    retrieve_internal_security_recommendations = process_builder.add_step(RetrieveInternalSecurityRecommendations)
     retrieve_public_documentation_step = process_builder.add_step(RetrievePublicDocumentationStep)
-    retrieve_security_documentation_step = process_builder.add_step(RetrieveSecurityDocumentationStep)
     make_security_recommendation_step = process_builder.add_step(MakeSecurityRecommendationsStep)
     build_azure_policy_step = process_builder.add_step(BuildAzurePolicyStep)
     write_terraform_step = process_builder.add_step(WriteTerraformStep)
 
     # Orchestrate the events
     process_builder.on_input_event("Start").send_event_to(
-        target=retrieve_public_documentation_step,
+        target=retrieve_internal_security_recommendations,
         parameter_name="params",
     )
-    
-    retrieve_public_documentation_step.on_event(
-        RetrievePublicDocumentationStep.OutputEvents.PublicDocumentsRetrieved
+
+    retrieve_internal_security_recommendations.on_event(
+        RetrieveInternalSecurityRecommendations.OutputEvents.InternalSecurityRecommendationsRetrieved
     ).send_event_to(
-        target=retrieve_security_documentation_step, 
-        function_name=RetrieveSecurityDocumentationStep.Functions.RetrieveSecurityDocumentation, 
+        target=retrieve_public_documentation_step, 
+        function_name=RetrievePublicDocumentationStep.Functions.RetrievePublicDocumentation, 
         parameter_name="params"
     )
 
-    retrieve_security_documentation_step.on_event(
-        RetrieveSecurityDocumentationStep.OutputEvents.SecurityDocumentationRetrieved
+    retrieve_public_documentation_step.on_event(
+        RetrievePublicDocumentationStep.OutputEvents.PublicDocumentsRetrieved
     ).send_event_to(
         target=make_security_recommendation_step, 
         function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations, 

@@ -1,4 +1,4 @@
-# template-repository
+# cloud-service-onboarding-agent
 
 ![architecture](./.img/architecture.png)
 
@@ -10,6 +10,17 @@
 
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - Azure subscription & resource group
+
+## Azure Resources needed
+
+- Azure AI Foundry Service
+  - OpenAI model (gpt-4o)
+  - Grounding with Bing
+  - Vector Store
+  - AI Agent service
+- Azure App Service
+- Azure Storage Account
+
 
 ## Deployment
 

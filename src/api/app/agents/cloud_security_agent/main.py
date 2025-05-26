@@ -5,13 +5,14 @@ from pydoc import cli
 
 from semantic_kernel import Kernel
 from semantic_kernel.agents import AzureAIAgent
-from azure.ai.agents.models import CodeInterpreterTool
-from azure.ai.agents.models import FileSearchTool
-from azure.ai.agents.models import ToolSet
-from azure.ai.agents.models import FilePurpose
 from azure.ai.agents.models import (
+    CodeInterpreterTool,
+    FileSearchTool,
+    ToolSet,
+    FilePurpose,
     ResponseFormatJsonSchema,
     ResponseFormatJsonSchemaType,
+    BingGroundingTool
 )
 
 from app.config import get_settings
@@ -57,9 +58,12 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
 
     file_search_tool = await setup_file_search_tool(client, kernel)
 
+    bing = BingGroundingTool(connection_id=get_settings().bing_connection_name)
+
     toolset = ToolSet()
     toolset.add(code_interpreter)
     toolset.add(file_search_tool)
+    toolset.add(bing)
 
     agent_definition = await client.agents.create_agent(
         model=get_settings().azure_openai_model_deployment_name,

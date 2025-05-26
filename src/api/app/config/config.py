@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     azure_ai_agent_endpoint: str
     azure_ai_agent_api_version: str
     application_insights_connection_string: str
+    bing_connection_name: str
 
 @lru_cache
 def get_settings():
