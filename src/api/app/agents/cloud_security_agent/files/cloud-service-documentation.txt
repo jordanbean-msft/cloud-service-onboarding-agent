@@ -1,0 +1,6 @@
+Cloud Security Requirements
+
+- Restrict Service Inbound and Outbound traffic to private network
+- Public access is disabled by default and create Private endpoint using existing Vnet and DNS Zones
+- RBAC controls not to change security controls
+- Security policies to block changes and remediate incase settings are changed by admins

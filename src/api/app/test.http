@@ -1,0 +1,7 @@
+POST http://localhost:8000/v1/chat
+Content-Type: application/json
+
+{
+  "thread_id": "12345",
+  "content": "Azure Container Apps"
+}
