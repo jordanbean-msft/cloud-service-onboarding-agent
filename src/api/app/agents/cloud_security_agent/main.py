@@ -23,6 +23,7 @@ from app.services.dependencies import AIProjectClient
 
 logger = logging.getLogger("uvicorn.error")
 
+
 async def setup_file_search_tool(client: AIProjectClient, kernel: Kernel) -> FileSearchTool:
     file_search_tool = None
 
@@ -51,9 +52,10 @@ async def setup_file_search_tool(client: AIProjectClient, kernel: Kernel) -> Fil
     # create file search tool
     file_search_tool = FileSearchTool(
         vector_store_ids=[vector_store.id],
-    )            
+    )
 
     return file_search_tool
+
 
 async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -> AzureAIAgent:
 
@@ -79,7 +81,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
         async for connection in client.connections.list():
             if connection.name == get_settings().bing_connection_name:
                 logger.info(f"Found existing Bing connection: {connection.id}")
-                #bing_grounding_tool = BingGroundingTool(connection_id=connection.id)
+                # bing_grounding_tool = BingGroundingTool(connection_id=connection.id)
                 bing_custom_tool = BingCustomSearchTool(
                     connection_id=connection.id,
                     instance_name=get_settings().bing_instance_name
