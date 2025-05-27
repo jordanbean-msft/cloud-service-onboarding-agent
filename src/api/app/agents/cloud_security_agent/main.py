@@ -1,30 +1,18 @@
 import logging
-from datetime import datetime
 import os
-from pydoc import cli
 
-from httpx import get
+from azure.ai.agents.models import (BingCustomSearchTool, CodeInterpreterTool,
+                                    FilePurpose, FileSearchTool, ToolSet)
 from semantic_kernel import Kernel
-from semantic_kernel.agents import AzureAIAgent
-from azure.ai.agents.models import (
-    CodeInterpreterTool,
-    FileSearchTool,
-    ToolSet,
-    FilePurpose,
-    ResponseFormatJsonSchema,
-    ResponseFormatJsonSchemaType,
-    BingGroundingTool,
-    BingCustomSearchTool
-)
+from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
 
 from app.config import get_settings
-from app.models.chat_output_message import ChatOutputMessage
 from app.services.dependencies import AIProjectClient
 
 logger = logging.getLogger("uvicorn.error")
 
 
-async def setup_file_search_tool(client: AIProjectClient, kernel: Kernel) -> FileSearchTool:
+async def setup_file_search_tool(client: AIProjectClient) -> FileSearchTool:
     file_search_tool = None
 
     try:
@@ -32,7 +20,7 @@ async def setup_file_search_tool(client: AIProjectClient, kernel: Kernel) -> Fil
         # upload documentation files to Agent storage
         for file in os.listdir(f"{os.path.dirname(os.path.abspath(__file__))}/files"):
             file_path = os.path.join(f"{os.path.dirname(os.path.abspath(__file__))}/files", file)
-            with open(file_path, "rb") as f:
+            with open(file_path, "rb"):
                 file = await client.agents.files.upload(
                     file_path=file_path,
                     purpose=FilePurpose.AGENTS
@@ -75,7 +63,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
     if not azure_ai_agent:
         code_interpreter = CodeInterpreterTool()
 
-        file_search_tool = await setup_file_search_tool(client, kernel)
+        file_search_tool = await setup_file_search_tool(client)
 
         toolset = ToolSet()
         async for connection in client.connections.list():
@@ -95,7 +83,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
         agent_definition = await client.agents.create_agent(
             model=get_settings().azure_openai_model_deployment_name,
             name="cloud-security-agent",
-            instructions=f"""
+            instructions="""
             You are a helpful assistant that can help onboard new cloud services. You will make security recommendations on how to secure cloud resources. You also help write Terraform code to deploy cloud resources securely. You can also search for relevant documentation and provide it to the user. You also write Azure Policy to enforce security best practices.
             """,
             toolset=toolset,

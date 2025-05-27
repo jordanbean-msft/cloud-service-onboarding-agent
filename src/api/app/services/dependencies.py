@@ -1,16 +1,17 @@
 from functools import lru_cache
-from async_lru import alru_cache
+from typing import Annotated
 
+from async_lru import alru_cache
+from azure.ai.projects.aio import AIProjectClient
+from azure.identity.aio import DefaultAzureCredential
+from fastapi import Depends
 from openai import AsyncAzureOpenAI
 from semantic_kernel import Kernel
-from app.config import get_settings
-from azure.identity.aio import DefaultAzureCredential
 from semantic_kernel.agents import AzureAIAgent
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 
-from azure.ai.projects.aio import AIProjectClient
-from fastapi import Depends
-from typing import Annotated
+from app.config import get_settings
+
 
 def create_azure_ai_client() -> AIProjectClient:
     creds = DefaultAzureCredential()
@@ -21,6 +22,7 @@ def create_azure_ai_client() -> AIProjectClient:
     )
 
     return client
+
 
 async def create_async_azure_ai_client() -> AsyncAzureOpenAI:
     project_client = AIProjectClient(
@@ -34,6 +36,7 @@ async def create_async_azure_ai_client() -> AsyncAzureOpenAI:
 
     return async_azure_ai_client
 
+
 async def create_kernel() -> Kernel:
     kernel = Kernel()
 
@@ -44,27 +47,31 @@ async def create_kernel() -> Kernel:
 
     return kernel
 
+
 @lru_cache
 def get_create_ai_project_client() -> AIProjectClient:
     return create_azure_ai_client()
 
+
 @alru_cache
 async def get_create_async_azure_ai_client() -> AsyncAzureOpenAI:
     return await create_async_azure_ai_client()
+
 
 @alru_cache
 async def get_create_kernel() -> Kernel:
     return await create_kernel()
 
 AIProjectClientDependency = Annotated[AIProjectClient, Depends(get_create_ai_project_client)]
-AsyncAzureAIClientDependency = Annotated[AsyncAzureOpenAI, Depends(get_create_async_azure_ai_client)]
+AsyncAzureAIClientDependency = Annotated[AsyncAzureOpenAI,
+                                         Depends(get_create_async_azure_ai_client)]
 KernelDependency = Annotated[Kernel, Depends(get_create_kernel)]
 
 __all__ = [
-    "AIProjectClientDependency", 
-    "AsyncAzureAIClientDependency", 
+    "AIProjectClientDependency",
+    "AsyncAzureAIClientDependency",
     "KernelDependency",
-    "get_create_ai_project_client", 
-    "get_create_async_azure_ai_client", 
+    "get_create_ai_project_client",
+    "get_create_async_azure_ai_client",
     "get_create_kernel",
 ]

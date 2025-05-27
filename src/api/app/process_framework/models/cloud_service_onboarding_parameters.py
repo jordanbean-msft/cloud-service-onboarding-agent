@@ -1,7 +1,9 @@
 from collections.abc import Callable
 from typing import Any
-from semantic_kernel.kernel_pydantic import KernelBaseModel
+
 from semantic_kernel.contents import ChatHistory
+from semantic_kernel.kernel_pydantic import KernelBaseModel
+
 
 class CloudServiceOnboardingParameters(KernelBaseModel):
     cloud_service_name: str = ""
@@ -13,6 +15,7 @@ class CloudServiceOnboardingParameters(KernelBaseModel):
     chat_history: ChatHistory = ChatHistory()
     error_message: str = ""
     emit_event: Callable[..., Any] = lambda x: None  # Default to a no-op function
+
 
 __all__ = [
     "CloudServiceOnboardingParameters",

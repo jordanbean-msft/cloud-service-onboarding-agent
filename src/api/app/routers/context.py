@@ -5,6 +5,8 @@ import contextvars
 chat_context_var = contextvars.ContextVar("chat_context")
 
 # Function to initialize the context (per request)
+
+
 def build_chat_context():
     queue = asyncio.Queue()
 
@@ -15,6 +17,7 @@ def build_chat_context():
         await queue.put(None)  # Signals to close the stream
 
     return emit_event, close, queue
+
 
 __all__ = [
     "chat_context_var",

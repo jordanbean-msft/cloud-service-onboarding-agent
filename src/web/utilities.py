@@ -1,7 +1,8 @@
 import json
-from io import StringIO
-#import pandas as pd
-#import matplotlib.pyplot as plt
+
+# import pandas as pd
+# import matplotlib.pyplot as plt
+
 
 def output_formatter(content):
     try:
@@ -29,5 +30,6 @@ def output_formatter(content):
         pass
 
     return content
+
 
 __all__ = ["output_formatter",]

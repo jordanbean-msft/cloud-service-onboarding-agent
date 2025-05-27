@@ -1,32 +1,37 @@
-import asyncio
 import json
 import logging
-from typing import ClassVar
-from opentelemetry import trace
 from enum import StrEnum, auto
+from typing import ClassVar
 
+from opentelemetry import trace
 from pydantic import Field
-
-from semantic_kernel.functions import kernel_function
-from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata
-from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.contents import ChatHistory
+from semantic_kernel.functions import kernel_function
+from semantic_kernel.kernel_pydantic import KernelBaseModel
+from semantic_kernel.processes.kernel_process import (
+    KernelProcessStep, KernelProcessStepContext, KernelProcessStepState,
+    kernel_process_step_metadata)
 
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
-from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
+from app.process_framework.models.cloud_service_onboarding_parameters import \
+    CloudServiceOnboardingParameters
+from app.process_framework.utilities.utilities import (call_agent,
+                                                       on_intermediate_message)
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
+
 class RetrieveInternalSecurityRecommendationsState(KernelBaseModel):
     chat_history: ChatHistory | None = None
-    #queue: asyncio.Queue | None = None
+    # queue: asyncio.Queue | None = None
+
 
 @kernel_process_step_metadata("RetrieveInternalSecurityRecommendationsStep")
 class RetrieveInternalSecurityRecommendationsStep(KernelProcessStep[RetrieveInternalSecurityRecommendationsState]):
-    state: RetrieveInternalSecurityRecommendationsState = Field(default_factory=RetrieveInternalSecurityRecommendationsState) # type: ignore
+    state: RetrieveInternalSecurityRecommendationsState = Field(
+        default_factory=RetrieveInternalSecurityRecommendationsState)  # type: ignore
 
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that retrieves internal security recommendations for cloud services. You will be given a cloud service name and public documentation. Your job is to retrieve any relevant internal security recommendations for the service.
@@ -40,22 +45,22 @@ You are a helpful assistant that retrieves internal security recommendations for
         RetrieveInternalSecurityRecommendationsError = auto()
 
     async def activate(self, state: KernelProcessStepState[RetrieveInternalSecurityRecommendationsState]):
-        self.state = state.state # type: ignore
+        self.state = state.state  # type: ignore
         if self.state.chat_history is None:
             self.state.chat_history = ChatHistory(system_message=self.system_prompt)
-        self.state.chat_history
 
     @tracer.start_as_current_span(Functions.RetrieveInternalSecurityRecommendations)
     @kernel_function(name=Functions.RetrieveInternalSecurityRecommendations)
     async def retrieve_internal_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
-        logger.debug(f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}")
+        logger.debug(
+            f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}")
 
         if self.state.chat_history is None:
             self.state.chat_history = ChatHistory(system_message=self.system_prompt)
 
         self.state.chat_history.add_user_message(
             f"Retrieve internal security recommendations for {params.cloud_service_name}. The public documentation is {params.public_documentation}."
-        ) # type: ignore
+        )  # type: ignore
 
         try:
             final_response = await call_agent(
@@ -82,18 +87,19 @@ You are a helpful assistant that retrieves internal security recommendations for
             )
             return
 
-        logger.debug(f"Retrieve Internal Security Recommendations complete. Response: {final_response}")
+        logger.debug(
+            f"Retrieve Internal Security Recommendations complete. Response: {final_response}")
 
-        self.state.chat_history.add_assistant_message(final_response) # type: ignore
-        
+        self.state.chat_history.add_assistant_message(final_response)  # type: ignore
+
         await params.emit_event(json.dumps(
-                        obj=ChatOutput(
-                            content_type=ContentTypeEnum.MARKDOWN,
-                            content=final_response,
-                            thread_id="asdf",
-                        ),
-                        default=serialize_chat_output,
-                    ) + "\n")
+            obj=ChatOutput(
+                content_type=ContentTypeEnum.MARKDOWN,
+                content=final_response,
+                thread_id="asdf",
+            ),
+            default=serialize_chat_output,
+        ) + "\n")
 
         await context.emit_event(
             process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsComplete,
@@ -108,6 +114,7 @@ You are a helpful assistant that retrieves internal security recommendations for
                 emit_event=params.emit_event
             )
         )
+
 
 __all__ = [
     "RetrieveInternalSecurityRecommendationsStep",

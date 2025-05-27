@@ -1,26 +1,23 @@
-import asyncio
 import json
-from typing import ClassVar
 import logging
-from opentelemetry import trace
 from enum import StrEnum, auto
+from typing import ClassVar
 
-from pydantic import BaseModel, Field
-
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
+from opentelemetry import trace
+from pydantic import Field
 from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
-from semantic_kernel.processes import ProcessBuilder
-from semantic_kernel.processes.kernel_process import KernelProcessStep, KernelProcessStepContext, KernelProcessStepState, kernel_process_step_metadata
-#from semantic_kernel.processes.local_runtime import KernelProcessEvent, start
 from semantic_kernel.kernel_pydantic import KernelBaseModel
+from semantic_kernel.processes.kernel_process import (
+    KernelProcessStep, KernelProcessStepContext, KernelProcessStepState,
+    kernel_process_step_metadata)
 
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
-from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.utilities.utilities import on_intermediate_message, call_agent
+from app.process_framework.models.cloud_service_onboarding_parameters import \
+    CloudServiceOnboardingParameters
+from app.process_framework.utilities.utilities import (call_agent,
+                                                       on_intermediate_message)
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -31,6 +28,7 @@ tracer = trace.get_tracer(__name__)
 #     public_documentation: str
 #     internal_security_recommendations: str
 
+
 class BuildAzurePolicyState(KernelBaseModel):
     chat_history: ChatHistory | None = None
 
@@ -39,10 +37,9 @@ class BuildAzurePolicyState(KernelBaseModel):
 #     error_message: str
 
 
-
 @kernel_process_step_metadata("BuildAzurePolicyStep")
 class BuildAzurePolicyStep(KernelProcessStep[BuildAzurePolicyState]):
-    state: BuildAzurePolicyState = Field(default_factory=BuildAzurePolicyState) # type: ignore
+    state: BuildAzurePolicyState = Field(default_factory=BuildAzurePolicyState)  # type: ignore
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that builds Azure security policies. You will be given a cloud service name, public documentation, and internal security recommendations. Your job is to build an Azure Policy that is easy to integrate into a Terraform module. The policy should be based on the provided documentation and recommendations.
 """
@@ -55,14 +52,13 @@ You are a helpful assistant that builds Azure security policies. You will be giv
         BuildAzurePolicyError = auto()
 
     async def activate(self, state: KernelProcessStepState[BuildAzurePolicyState]):
-        self.state = state.state # type: ignore
+        self.state = state.state  # type: ignore
         if self.state.chat_history is None:
             self.state.chat_history = ChatHistory(system_message=self.system_prompt)
-        self.state.chat_history
 
     @tracer.start_as_current_span(Functions.BuildAzurePolicy)
     @kernel_function(name=Functions.BuildAzurePolicy)
-    #async def build_azure_policy(self, context: KernelProcessStepContext, params: BuildAzurePolicyParameters):
+    # async def build_azure_policy(self, context: KernelProcessStepContext, params: BuildAzurePolicyParameters):
     async def build_azure_policy(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         logger.debug(f"Building Azure policy for cloud service: {params.cloud_service_name}")
 
@@ -71,7 +67,7 @@ You are a helpful assistant that builds Azure security policies. You will be giv
 
         self.state.chat_history.add_user_message(
             f"Build Azure Policy for {params.cloud_service_name}. The public security recommendations are {params.public_documentation}. The internal security recommendations are {params.internal_security_recommendations}."
-        ) # type: ignore
+        )  # type: ignore
 
         try:
             final_response = await call_agent(
@@ -100,17 +96,17 @@ You are a helpful assistant that builds Azure security policies. You will be giv
 
         logger.debug(f"Building Azure Policy complete. Response: {final_response}")
 
-        self.state.chat_history.add_assistant_message(final_response) # type: ignore
+        self.state.chat_history.add_assistant_message(final_response)  # type: ignore
 
         await params.emit_event(json.dumps(
-                        obj=ChatOutput(
-                            content_type=ContentTypeEnum.MARKDOWN,
-                            content=final_response,
-                            thread_id="asdf",
-                        ),
-                        default=serialize_chat_output,
-                    ) + "\n")
-        
+            obj=ChatOutput(
+                content_type=ContentTypeEnum.MARKDOWN,
+                content=final_response,
+                thread_id="asdf",
+            ),
+            default=serialize_chat_output,
+        ) + "\n")
+
         await context.emit_event(
             process_event=self.OutputEvents.BuildAzurePolicyComplete,
             data=CloudServiceOnboardingParameters(
@@ -124,7 +120,8 @@ You are a helpful assistant that builds Azure security policies. You will be giv
                 emit_event=params.emit_event
             )
         )
-    
+
+
 __all__ = [
     "BuildAzurePolicyStep",
     # "BuildAzurePolicyParameters",

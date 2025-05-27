@@ -1,12 +1,14 @@
 import logging
-from opentelemetry import trace
 from asyncio import Queue
 
-from semantic_kernel.processes.kernel_process.kernel_process_message_channel import KernelProcessMessageChannel
+from opentelemetry import trace
 from semantic_kernel.processes.kernel_process import KernelProcessEvent
+from semantic_kernel.processes.kernel_process.kernel_process_message_channel import \
+    KernelProcessMessageChannel
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
+
 
 class CloudServiceOnboardingEventClient(KernelProcessMessageChannel):
     def __init__(self, queue: Queue):
@@ -18,6 +20,7 @@ class CloudServiceOnboardingEventClient(KernelProcessMessageChannel):
         logger.debug(f"Emitting event: {process_event}")
         await self.queue.put(process_event)
         pass
+
 
 __all__ = [
     "CloudServiceOnboardingEventClient",

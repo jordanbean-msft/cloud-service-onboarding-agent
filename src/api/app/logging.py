@@ -1,12 +1,8 @@
-import asyncio
 import logging
 
-from azure.monitor.opentelemetry.exporter import (
-    AzureMonitorLogExporter,
-    AzureMonitorMetricExporter,
-    AzureMonitorTraceExporter,
-)
-
+from azure.monitor.opentelemetry.exporter import (AzureMonitorLogExporter,
+                                                  AzureMonitorMetricExporter,
+                                                  AzureMonitorTraceExporter)
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.metrics import set_meter_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
@@ -19,7 +15,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.trace import set_tracer_provider
-
 
 from app.config import get_settings
 
