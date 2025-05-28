@@ -45,7 +45,7 @@ You are a helpful assistant that writes Terraform code for cloud services. You w
     @kernel_function(name=Functions.WriteTerraform)
     async def write_terraform(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Write Terraform",
-                        message=f"Writing Terraform for cloud service: {params.cloud_service_name}...",
+                        message=f"Writing Terraform for cloud service: {params.cloud_service_name}...\n",
                         post_intermediate_message=self.state.post_intermediate_message)
 
         try:

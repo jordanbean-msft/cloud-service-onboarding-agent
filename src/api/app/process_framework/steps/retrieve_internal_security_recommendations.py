@@ -46,7 +46,7 @@ You are a helpful assistant that retrieves internal security recommendations for
     @kernel_function(name=Functions.RetrieveInternalSecurityRecommendations)
     async def retrieve_internal_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Retrieve Internal Security Recommendations",
-                        message=f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}...",
+                        message=f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}...\n",
                         post_intermediate_message=self.state.post_intermediate_message)
         try:
             if self.state.chat_history is None:

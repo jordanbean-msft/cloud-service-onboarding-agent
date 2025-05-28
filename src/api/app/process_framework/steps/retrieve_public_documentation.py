@@ -46,7 +46,7 @@ You are a helpful assistant that retrieves public security documentation for clo
     @kernel_function(name=Functions.RetrievePublicDocumentation)
     async def retrieve_public_documentation(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Retrieve Public Documentation",
-                        message=f"Retrieving public documentation for cloud service: {params.cloud_service_name}...",
+                        message=f"Retrieving public documentation for cloud service: {params.cloud_service_name}...\n",
                         post_intermediate_message=self.state.post_intermediate_message)
 
         try:

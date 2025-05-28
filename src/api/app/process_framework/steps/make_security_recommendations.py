@@ -55,7 +55,7 @@ You are a helpful assistant that makes security recommendations for cloud servic
     @kernel_function(name=Functions.MakeSecurityRecommendations)
     async def make_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Make Security Recommendations",
-                        message=f"Running analysis on cloud service: {params.cloud_service_name}...",
+                        message=f"Running analysis on cloud service: {params.cloud_service_name}...\n",
                         post_intermediate_message=self.state.post_intermediate_message)
 
         try:

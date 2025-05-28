@@ -53,7 +53,7 @@ You are a helpful assistant that builds Azure Policy security policies. You will
     @kernel_function(name=Functions.BuildAzurePolicy)
     async def build_azure_policy(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Build Azure Policy",
-                        message=f"Building Azure policy for cloud service: {params.cloud_service_name}...",
+                        message=f"Building Azure policy for cloud service: {params.cloud_service_name}...\n",
                         post_intermediate_message=self.state.post_intermediate_message)
 
         try:
