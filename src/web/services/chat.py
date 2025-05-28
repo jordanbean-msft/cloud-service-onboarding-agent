@@ -6,8 +6,9 @@ from models.chat_get_image import ChatGetImageInput
 from models.chat_get_image_contents import ChatGetImageContents
 from models.chat_get_thread import ChatGetThreadInput
 from models.chat_input import ChatInput
+from config import get_settings
 
-api_base_url = os.getenv("services__api__api__0", "")
+api_base_url = get_settings().services__api__api__0
 
 
 def create_thread():

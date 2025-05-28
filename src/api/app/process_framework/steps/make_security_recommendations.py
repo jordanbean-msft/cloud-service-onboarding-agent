@@ -75,7 +75,7 @@ You are a helpful assistant that makes security recommendations for cloud servic
             final_response = await call_agent(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
-                on_intermediate_message=on_intermediate_message
+                on_intermediate_message_param=on_intermediate_message
             )
         except Exception as e:
             final_response = f"Error making security recommendations: {e}"
@@ -103,7 +103,10 @@ You are a helpful assistant that makes security recommendations for cloud servic
         await params.emit_event(json.dumps(
             obj=ChatOutput(
                 content_type=ContentTypeEnum.MARKDOWN,
-                content=final_response,
+                content=f"""
+# Make Security Recommendations
+{final_response}
+""",
                 thread_id="asdf",
             ),
             default=serialize_chat_output,

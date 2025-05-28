@@ -66,7 +66,7 @@ You are a helpful assistant that retrieves internal security recommendations for
             final_response = await call_agent(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
-                on_intermediate_message=on_intermediate_message
+                on_intermediate_message_param=on_intermediate_message
             )
         except Exception as e:
             final_response = f"Error retrieving internal security recommendations: {e}"
@@ -95,7 +95,10 @@ You are a helpful assistant that retrieves internal security recommendations for
         await params.emit_event(json.dumps(
             obj=ChatOutput(
                 content_type=ContentTypeEnum.MARKDOWN,
-                content=final_response,
+                content=f"""
+# Retrieve Internal Security Recommendations
+{final_response}
+""",
                 thread_id="asdf",
             ),
             default=serialize_chat_output,

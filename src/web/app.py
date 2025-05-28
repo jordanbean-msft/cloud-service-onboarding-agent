@@ -103,7 +103,7 @@ if "thread_id" in st.session_state:
     display_chat_history()
 
     if question := st.chat_input(
-        placeholder="Ask me...",
+        placeholder="Enter the name of the Azure service you wish to generate recommendations for...",
         on_submit=_handle_user_interaction,
         disabled=st.session_state["waiting_for_response"],
     ):
