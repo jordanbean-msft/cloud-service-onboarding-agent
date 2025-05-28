@@ -34,7 +34,7 @@ async def create_thread(azure_ai_client: AIProjectClient):
 
 async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectClient):
     with tracer.start_as_current_span(name="build_chat_results"):
-        emit_event, _, queue = chat_context_var.get()
+        post_intermediate_message, _, queue = chat_context_var.get()
 
         try:
             kernel = Kernel()
@@ -64,7 +64,7 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
                         chat_history.add_tool_message(message.content)
 
             process = build_process_cloud_service_onboarding(chat_history=chat_history,
-                                                             emit_event=emit_event)
+                                                             post_intermediate_message=post_intermediate_message)
 
             async with await start(
                 process=process,
@@ -83,7 +83,7 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
 # """
 #                     logger.debug(step_message)
 
-#                     await emit_event(json.dumps(
+#                     await post_intermediate_message(json.dumps(
 #                         obj=ChatOutput(
 #                             content_type=ContentTypeEnum.MARKDOWN,
 #                             content=step_message,
@@ -100,7 +100,7 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
 """
             logger.error(error_message)
 
-            await emit_event(json.dumps(
+            await post_intermediate_message(json.dumps(
                 obj=ChatOutput(
                     content_type=ContentTypeEnum.MARKDOWN,
                     content=error_message,

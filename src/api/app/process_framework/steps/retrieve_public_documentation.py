@@ -15,7 +15,7 @@ from semantic_kernel.processes.kernel_process import (
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.utilities.utilities import (call_agent,
-                                                       on_intermediate_message, post_error, post_beginning_info, post_end_info)
+                                                       on_intermediate_message, post_error, post_beginning_info, post_intermediate_info)
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -23,7 +23,7 @@ tracer = trace.get_tracer(__name__)
 
 class RetrievePublicDocumentationState(KernelBaseModel):
     chat_history: ChatHistory | None = None
-    emit_event: Callable[[Any], Awaitable[None]] | None = None
+    post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
 
 
 @kernel_process_step_metadata("RetrievePublicDocumentationStep")
@@ -47,7 +47,7 @@ You are a helpful assistant that retrieves public security documentation for clo
     async def retrieve_public_documentation(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Retrieve Public Documentation",
                         message=f"Retrieving public documentation for cloud service: {params.cloud_service_name}...",
-                        emit_event=self.state.emit_event)
+                        post_intermediate_message=self.state.post_intermediate_message)
 
         try:
             if self.state.chat_history is None:
@@ -57,19 +57,19 @@ You are a helpful assistant that retrieves public security documentation for clo
                 f"Retrieve public security documentation for {params.cloud_service_name}. The internal security recommendations are: {params.internal_security_recommendations}."
             )  # type: ignore
 
-            final_response = await call_agent(
+            final_response = ""
+            async for response in call_agent(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
                 on_intermediate_message_param=on_intermediate_message
-            )
-
-            await post_end_info(message=f"""
-Retrieve Public Documentation complete\n
-{final_response}
-""",
-                                emit_event=self.state.emit_event)
+            ):
+                final_response += response
+                await post_intermediate_info(message=response,
+                                             post_intermediate_message=self.state.post_intermediate_message)
 
             self.state.chat_history.add_assistant_message(final_response)  # type: ignore
+
+            logger.info(f"Final public documentation response: {final_response}")
 
             await context.emit_event(
                 process_event=self.OutputEvents.RetrievePublicDocumentationComplete,
@@ -85,7 +85,7 @@ Retrieve Public Documentation complete\n
         except Exception as e:
             await post_error(title="Error retrieving public documentation",
                              exception=e,
-                             emit_event=self.state.emit_event)
+                             post_intermediate_message=self.state.post_intermediate_message)
 
             await context.emit_event(
                 process_event=self.OutputEvents.RetrievePublicDocumentationError,

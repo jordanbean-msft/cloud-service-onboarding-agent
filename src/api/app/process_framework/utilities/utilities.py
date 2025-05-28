@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import AsyncIterable
 
 from opentelemetry import trace
 from semantic_kernel.contents import (ChatHistory, ChatMessageContent,
@@ -13,9 +14,9 @@ from app.services.agents import get_create_agent_manager
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
-async def post_emit_event(emit_event, content: str, thread_id: str = "asdf"):
-    if emit_event is not None:
-        await emit_event(json.dumps(
+async def _post_intermediate_message(post_intermediate_message, content: str, thread_id: str = "asdf"):
+    if post_intermediate_message is not None:
+        await post_intermediate_message(json.dumps(
             obj=ChatOutput(
                 content_type=ContentTypeEnum.MARKDOWN,
                 content=content,
@@ -24,7 +25,7 @@ async def post_emit_event(emit_event, content: str, thread_id: str = "asdf"):
             default=serialize_chat_output,
         ) + "\n")
 
-async def post_beginning_info(title, message, emit_event):
+async def post_beginning_info(title, message, post_intermediate_message):
     final_response = f"""
 ***
 ## {title}
@@ -32,17 +33,12 @@ async def post_beginning_info(title, message, emit_event):
 """
     logger.info(final_response)
 
-    await post_emit_event(emit_event, final_response)
+    await _post_intermediate_message(post_intermediate_message, final_response)
 
-async def post_end_info(message, emit_event):
-    final_response = f"""
-{message}
-"""
-    logger.info(final_response)
+async def post_intermediate_info(message, post_intermediate_message):
+    await _post_intermediate_message(post_intermediate_message, message)
 
-    await post_emit_event(emit_event, final_response)
-
-async def post_error(title, exception, emit_event):
+async def post_error(title, exception, post_intermediate_message):
     final_response = f"""
 ***
 **{title}**
@@ -50,7 +46,7 @@ async def post_error(title, exception, emit_event):
 """
     logger.error(final_response)
 
-    await post_emit_event(emit_event, final_response)
+    await _post_intermediate_message(post_intermediate_message, final_response)
 
 async def on_intermediate_message(message: ChatMessageContent) -> None:
     for item in message.items or []:
@@ -64,7 +60,7 @@ async def on_intermediate_message(message: ChatMessageContent) -> None:
 
 async def call_agent(agent_name: str,
                      chat_history: ChatHistory,
-                     on_intermediate_message_param) -> str:
+                     on_intermediate_message_param) -> AsyncIterable[str]:
     agent_manager = get_create_agent_manager()
 
     agent = None
@@ -74,27 +70,27 @@ async def call_agent(agent_name: str,
             break
 
     if not agent:
-        return f"{agent_name} not found."
+        raise ValueError(f"{agent_name} not found.")
 
-    final_response = ""
     try:
-        async for response in agent.invoke(
+        async for response in agent.invoke_stream(
             messages=chat_history.messages,  # type: ignore
             on_intermediate_message=on_intermediate_message_param
         ):
-            final_response += response.content.content
+            #final_response += response.content.content
+            yield response.content.content
     except Exception as e:
         logger.error(f"Error calling agent {agent_name}: {e}")
         raise
 
-    logger.debug(f"Agent {agent_name} response: {final_response}")
+    #logger.debug(f"Agent {agent_name} response: {final_response}")
 
-    return final_response
+    #return final_response
 
 __all__ = [
     "on_intermediate_message",
     "call_agent",
     "post_beginning_info",
-    "post_end_info",
+    "post_intermediate_info",
     "post_error",
 ]

@@ -21,53 +21,53 @@ logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 async def retrieve_internal_security_recommendation_step_factory(chat_history: ChatHistory,
-                                                                 emit_event: Callable[[Any], Awaitable[None]]
+                                                                 post_intermediate_message: Callable[[Any], Awaitable[None]]
                                                                  ) -> RetrieveInternalSecurityRecommendationsStep:
     step = RetrieveInternalSecurityRecommendationsStep()
     step.state.chat_history = chat_history
-    step.state.emit_event = emit_event
+    step.state.post_intermediate_message = post_intermediate_message
     return step
 
 async def make_security_recommendation_step_factory(chat_history: ChatHistory,
-                                                    emit_event: Callable[[Any], Awaitable[None]]
+                                                    post_intermediate_message: Callable[[Any], Awaitable[None]]
                                                     ) -> MakeSecurityRecommendationsStep:
     step = MakeSecurityRecommendationsStep()
     step.state.chat_history = chat_history
-    step.state.emit_event = emit_event
+    step.state.post_intermediate_message = post_intermediate_message
     return step
 
 async def retrieve_public_documentation_step_factory(chat_history: ChatHistory,
-                                                     emit_event: Callable[[Any], Awaitable[None]]
+                                                     post_intermediate_message: Callable[[Any], Awaitable[None]]
                                                      ) -> RetrievePublicDocumentationStep:
     step = RetrievePublicDocumentationStep()
     step.state.chat_history = chat_history
-    step.state.emit_event = emit_event
+    step.state.post_intermediate_message = post_intermediate_message
     return step
 
 async def write_terraform_step_factory(chat_history: ChatHistory,
-                                       emit_event: Callable[[Any], Awaitable[None]]
+                                       post_intermediate_message: Callable[[Any], Awaitable[None]]
                                        ) -> WriteTerraformStep:
     step = WriteTerraformStep()
     step.state.chat_history = chat_history
-    step.state.emit_event = emit_event
+    step.state.post_intermediate_message = post_intermediate_message
     return step
 
 async def build_azure_policy_step_factory(chat_history: ChatHistory,
-                                          emit_event: Callable[[Any], Awaitable[None]]
+                                          post_intermediate_message: Callable[[Any], Awaitable[None]]
                                           ) -> BuildAzurePolicyStep:
     step = BuildAzurePolicyStep()
     step.state.chat_history = chat_history
-    step.state.emit_event = emit_event
+    step.state.post_intermediate_message = post_intermediate_message
     return step
 
-def build_process_cloud_service_onboarding(chat_history: ChatHistory, emit_event: Callable[[Any], Awaitable[None]]) -> KernelProcess:
+def build_process_cloud_service_onboarding(chat_history: ChatHistory, post_intermediate_message: Callable[[Any], Awaitable[None]]) -> KernelProcess:
     # Create the process builder
     process_builder = ProcessBuilder(
         name="cloud-service-onboarding-process",
     )  # type: ignore
 
     # Add the steps
-    retrieve_internal_security_recommendations, retrieve_public_documentation_step, make_security_recommendation_step, build_azure_policy_step, write_terraform_step = add_steps(process_builder, chat_history, emit_event)
+    retrieve_internal_security_recommendations, retrieve_public_documentation_step, make_security_recommendation_step, build_azure_policy_step, write_terraform_step = add_steps(process_builder, chat_history, post_intermediate_message)
 
     # Orchestrate the events
     setup_events(process_builder,
@@ -143,37 +143,37 @@ def setup_events(process_builder, retrieve_internal_security_recommendations, re
         WriteTerraformStep.OutputEvents.WriteTerraformError
     ).stop_process()
 
-def add_steps(process_builder, chat_history: ChatHistory, emit_event: Callable[[Any], Awaitable[None]]):
+def add_steps(process_builder, chat_history: ChatHistory, intermediate_message: Callable[[Any], Awaitable[None]]):
     retrieve_internal_security_recommendations = process_builder.add_step(
         step_type=RetrieveInternalSecurityRecommendationsStep,
         factory_function=partial(retrieve_internal_security_recommendation_step_factory,
                                  chat_history=chat_history,
-                                 emit_event=emit_event)
+                                 post_intermediate_message=intermediate_message)
     )
 
     retrieve_public_documentation_step = process_builder.add_step(
         step_type=RetrievePublicDocumentationStep,
         factory_function=partial(retrieve_public_documentation_step_factory,
                                  chat_history=chat_history,
-                                 emit_event=emit_event)
+                                 post_intermediate_message=intermediate_message)
     )
     make_security_recommendation_step = process_builder.add_step(
         step_type=MakeSecurityRecommendationsStep,
         factory_function=partial(make_security_recommendation_step_factory,
                                  chat_history=chat_history,
-                                 emit_event=emit_event)
+                                 post_intermediate_message=intermediate_message)
     )
     build_azure_policy_step = process_builder.add_step(
         step_type=BuildAzurePolicyStep,
         factory_function=partial(build_azure_policy_step_factory,
                                  chat_history=chat_history,
-                                 emit_event=emit_event)
+                                 post_intermediate_message=intermediate_message)
     )
     write_terraform_step = process_builder.add_step(
         step_type=WriteTerraformStep,
         factory_function=partial(write_terraform_step_factory,
                                  chat_history=chat_history,
-                                 emit_event=emit_event)
+                                 post_intermediate_message=intermediate_message)
     )
 
     return retrieve_internal_security_recommendations, retrieve_public_documentation_step, make_security_recommendation_step, build_azure_policy_step, write_terraform_step

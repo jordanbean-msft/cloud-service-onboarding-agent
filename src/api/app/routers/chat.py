@@ -77,8 +77,8 @@ async def get_image(thread_input: ChatGetImageInput,
 @router.post("/chat")
 async def post_chat(chat_input: ChatInput,
                     azure_ai_client: AIProjectClientDependency):
-    emit_event, close, queue = build_chat_context()
-    chat_context_var.set((emit_event, close, queue))
+    intermediate_message, close, queue = build_chat_context()
+    chat_context_var.set((intermediate_message, close, queue))
 
     asyncio.create_task(
         build_chat_results(chat_input, azure_ai_client)
@@ -89,7 +89,7 @@ async def post_chat(chat_input: ChatInput,
             event = await queue.get()
             if event is None:  # End of stream
                 break
-            yield f"{event}\n\n"
+            yield event
 
     return StreamingResponse(
         event_generator(),
