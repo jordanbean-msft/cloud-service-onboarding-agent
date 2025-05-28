@@ -1,7 +1,7 @@
 import json
 import logging
 from enum import StrEnum, auto
-from typing import ClassVar
+from typing import Any, Awaitable, Callable, ClassVar
 
 from opentelemetry import trace
 from pydantic import Field
@@ -9,15 +9,13 @@ from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.processes.kernel_process import (
-    KernelProcessStep, KernelProcessStepContext, KernelProcessStepState,
+    KernelProcessStep, KernelProcessStepContext,
     kernel_process_step_metadata)
 
-from app.models.chat_output import ChatOutput, serialize_chat_output
-from app.models.content_type_enum import ContentTypeEnum
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.utilities.utilities import (call_agent,
-                                                       on_intermediate_message)
+                                                       on_intermediate_message, post_error, post_beginning_info, post_end_info)
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -25,16 +23,16 @@ tracer = trace.get_tracer(__name__)
 
 class RetrieveInternalSecurityRecommendationsState(KernelBaseModel):
     chat_history: ChatHistory | None = None
-    # queue: asyncio.Queue | None = None
+    emit_event: Callable[[Any], Awaitable[None]] | None = None
 
 
 @kernel_process_step_metadata("RetrieveInternalSecurityRecommendationsStep")
 class RetrieveInternalSecurityRecommendationsStep(KernelProcessStep[RetrieveInternalSecurityRecommendationsState]):
-    state: RetrieveInternalSecurityRecommendationsState = Field(
-        default_factory=RetrieveInternalSecurityRecommendationsState)  # type: ignore
+    state: RetrieveInternalSecurityRecommendationsState = Field( # type: ignore
+        default_factory=RetrieveInternalSecurityRecommendationsState)
 
     system_prompt: ClassVar[str] = """
-You are a helpful assistant that retrieves internal security recommendations for cloud services. You will be given a cloud service name and public documentation. Your job is to retrieve any relevant internal security recommendations for the service.
+You are a helpful assistant that retrieves internal security recommendations for cloud services. You will be given a cloud service name. Your job is to retrieve any relevant internal security recommendations for the service. Make sure and follow links to find additional information. The internal security recommendations should be comprehensive and follow best practices for cloud security. These recommendations will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the internal security recommendations that will be used to create the policy. The recommendations should be actionable and include specifics, not links to other documentation.
 """
 
     class Functions(StrEnum):
@@ -44,33 +42,50 @@ You are a helpful assistant that retrieves internal security recommendations for
         RetrieveInternalSecurityRecommendationsComplete = auto()
         RetrieveInternalSecurityRecommendationsError = auto()
 
-    async def activate(self, state: KernelProcessStepState[RetrieveInternalSecurityRecommendationsState]):
-        self.state = state.state  # type: ignore
-        if self.state.chat_history is None:
-            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
-
     @tracer.start_as_current_span(Functions.RetrieveInternalSecurityRecommendations)
     @kernel_function(name=Functions.RetrieveInternalSecurityRecommendations)
     async def retrieve_internal_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
-        logger.debug(
-            f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}")
-
-        if self.state.chat_history is None:
-            self.state.chat_history = ChatHistory(system_message=self.system_prompt)
-
-        self.state.chat_history.add_user_message(
-            f"Retrieve internal security recommendations for {params.cloud_service_name}. The public documentation is {params.public_documentation}."
-        )  # type: ignore
-
+        await post_beginning_info(title="Retrieve Internal Security Recommendations",
+                        message=f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}...",
+                        emit_event=self.state.emit_event)
         try:
+            if self.state.chat_history is None:
+                self.state.chat_history = ChatHistory(system_message=self.system_prompt)
+
+            self.state.chat_history.add_user_message(
+                f"Retrieve internal security recommendations for {params.cloud_service_name}."
+            )  # type: ignore
+
             final_response = await call_agent(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
                 on_intermediate_message_param=on_intermediate_message
             )
+
+            await post_end_info(message=f"""
+Retrieve Internal Security Recommendations complete\n
+{final_response}
+""",
+                                emit_event=self.state.emit_event)
+
+            self.state.chat_history.add_assistant_message(final_response)  # type: ignore
+
+            await context.emit_event(
+                process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsComplete,
+                data=CloudServiceOnboardingParameters(
+                    cloud_service_name=params.cloud_service_name,
+                    public_documentation=params.public_documentation,
+                    internal_security_recommendations=final_response,
+                    security_recommendations=params.security_recommendations,
+                    azure_policy=params.azure_policy,
+                    terraform_code=params.terraform_code,
+                )
+            )
         except Exception as e:
-            final_response = f"Error retrieving internal security recommendations: {e}"
-            logger.error(f"Error retrieving internal security recommendations: {e}")
+            await post_error(title="Error retrieving internal security recommendations",
+                             exception=e,
+                             emit_event=self.state.emit_event)
+
             await context.emit_event(
                 process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsError,
                 data=CloudServiceOnboardingParameters(
@@ -80,44 +95,9 @@ You are a helpful assistant that retrieves internal security recommendations for
                     security_recommendations=params.security_recommendations,
                     azure_policy=params.azure_policy,
                     terraform_code=params.terraform_code,
-                    chat_history=params.chat_history,
                     error_message=str(e),
-                    emit_event=params.emit_event
                 )
             )
-            return
-
-        logger.debug(
-            f"Retrieve Internal Security Recommendations complete. Response: {final_response}")
-
-        self.state.chat_history.add_assistant_message(final_response)  # type: ignore
-
-        await params.emit_event(json.dumps(
-            obj=ChatOutput(
-                content_type=ContentTypeEnum.MARKDOWN,
-                content=f"""
-# Retrieve Internal Security Recommendations
-{final_response}
-""",
-                thread_id="asdf",
-            ),
-            default=serialize_chat_output,
-        ) + "\n")
-
-        await context.emit_event(
-            process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsComplete,
-            data=CloudServiceOnboardingParameters(
-                cloud_service_name=params.cloud_service_name,
-                public_documentation=params.public_documentation,
-                internal_security_recommendations=final_response,
-                security_recommendations=params.security_recommendations,
-                azure_policy=params.azure_policy,
-                terraform_code=params.terraform_code,
-                chat_history=params.chat_history,
-                emit_event=params.emit_event
-            )
-        )
-
 
 __all__ = [
     "RetrieveInternalSecurityRecommendationsStep",

@@ -1,6 +1,9 @@
 import logging
+from typing import Any, Awaitable, Callable
+from functools import partial
 
 from opentelemetry import trace
+from semantic_kernel.contents import ChatHistory
 from semantic_kernel.processes import ProcessBuilder
 from semantic_kernel.processes.kernel_process.kernel_process import \
     KernelProcess
@@ -17,22 +20,68 @@ from app.process_framework.steps.write_terraform import WriteTerraformStep
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
+async def retrieve_internal_security_recommendation_step_factory(chat_history: ChatHistory,
+                                                                 emit_event: Callable[[Any], Awaitable[None]]
+                                                                 ) -> RetrieveInternalSecurityRecommendationsStep:
+    step = RetrieveInternalSecurityRecommendationsStep()
+    step.state.chat_history = chat_history
+    step.state.emit_event = emit_event
+    return step
 
-def build_process_cloud_service_onboarding() -> KernelProcess:
+async def make_security_recommendation_step_factory(chat_history: ChatHistory,
+                                                    emit_event: Callable[[Any], Awaitable[None]]
+                                                    ) -> MakeSecurityRecommendationsStep:
+    step = MakeSecurityRecommendationsStep()
+    step.state.chat_history = chat_history
+    step.state.emit_event = emit_event
+    return step
+
+async def retrieve_public_documentation_step_factory(chat_history: ChatHistory,
+                                                     emit_event: Callable[[Any], Awaitable[None]]
+                                                     ) -> RetrievePublicDocumentationStep:
+    step = RetrievePublicDocumentationStep()
+    step.state.chat_history = chat_history
+    step.state.emit_event = emit_event
+    return step
+
+async def write_terraform_step_factory(chat_history: ChatHistory,
+                                       emit_event: Callable[[Any], Awaitable[None]]
+                                       ) -> WriteTerraformStep:
+    step = WriteTerraformStep()
+    step.state.chat_history = chat_history
+    step.state.emit_event = emit_event
+    return step
+
+async def build_azure_policy_step_factory(chat_history: ChatHistory,
+                                          emit_event: Callable[[Any], Awaitable[None]]
+                                          ) -> BuildAzurePolicyStep:
+    step = BuildAzurePolicyStep()
+    step.state.chat_history = chat_history
+    step.state.emit_event = emit_event
+    return step
+
+def build_process_cloud_service_onboarding(chat_history: ChatHistory, emit_event: Callable[[Any], Awaitable[None]]) -> KernelProcess:
     # Create the process builder
     process_builder = ProcessBuilder(
         name="cloud-service-onboarding-process",
     )  # type: ignore
 
     # Add the steps
-    retrieve_internal_security_recommendations = process_builder.add_step(
-        RetrieveInternalSecurityRecommendationsStep)
-    retrieve_public_documentation_step = process_builder.add_step(RetrievePublicDocumentationStep)
-    make_security_recommendation_step = process_builder.add_step(MakeSecurityRecommendationsStep)
-    build_azure_policy_step = process_builder.add_step(BuildAzurePolicyStep)
-    write_terraform_step = process_builder.add_step(WriteTerraformStep)
+    retrieve_internal_security_recommendations, retrieve_public_documentation_step, make_security_recommendation_step, build_azure_policy_step, write_terraform_step = add_steps(process_builder, chat_history, emit_event)
 
     # Orchestrate the events
+    setup_events(process_builder,
+                 retrieve_internal_security_recommendations,
+                 retrieve_public_documentation_step,
+                 make_security_recommendation_step,
+                 build_azure_policy_step,
+                 write_terraform_step)
+
+    process = process_builder.build()
+
+    return process
+
+def setup_events(process_builder, retrieve_internal_security_recommendations, retrieve_public_documentation_step, make_security_recommendation_step, build_azure_policy_step, write_terraform_step):
     process_builder.on_input_event("Start").send_event_to(
         target=retrieve_internal_security_recommendations,
         parameter_name="params",
@@ -46,6 +95,10 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
         parameter_name="params"
     )
 
+    retrieve_internal_security_recommendations.on_event(
+        RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsError
+    ).stop_process()
+
     retrieve_public_documentation_step.on_event(
         RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationComplete
     ).send_event_to(
@@ -53,6 +106,10 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
         function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations,
         parameter_name="params"
     )
+
+    retrieve_public_documentation_step.on_event(
+        RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationError
+    ).stop_process()
 
     make_security_recommendation_step.on_event(
         MakeSecurityRecommendationsStep.OutputEvents.MakeSecurityRecommendationsComplete
@@ -62,6 +119,10 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
         parameter_name="params"
     )
 
+    make_security_recommendation_step.on_event(
+        MakeSecurityRecommendationsStep.OutputEvents.MakeSecurityRecommendationsError
+    ).stop_process()
+
     build_azure_policy_step.on_event(
         BuildAzurePolicyStep.OutputEvents.BuildAzurePolicyComplete
     ).send_event_to(
@@ -70,9 +131,52 @@ def build_process_cloud_service_onboarding() -> KernelProcess:
         parameter_name="params"
     )
 
-    process = process_builder.build()
+    build_azure_policy_step.on_event(
+        BuildAzurePolicyStep.OutputEvents.BuildAzurePolicyError
+    ).stop_process()
 
-    return process
+    write_terraform_step.on_event(
+        WriteTerraformStep.OutputEvents.WriteTerraformComplete
+    ).stop_process()
+
+    write_terraform_step.on_event(
+        WriteTerraformStep.OutputEvents.WriteTerraformError
+    ).stop_process()
+
+def add_steps(process_builder, chat_history: ChatHistory, emit_event: Callable[[Any], Awaitable[None]]):
+    retrieve_internal_security_recommendations = process_builder.add_step(
+        step_type=RetrieveInternalSecurityRecommendationsStep,
+        factory_function=partial(retrieve_internal_security_recommendation_step_factory,
+                                 chat_history=chat_history,
+                                 emit_event=emit_event)
+    )
+
+    retrieve_public_documentation_step = process_builder.add_step(
+        step_type=RetrievePublicDocumentationStep,
+        factory_function=partial(retrieve_public_documentation_step_factory,
+                                 chat_history=chat_history,
+                                 emit_event=emit_event)
+    )
+    make_security_recommendation_step = process_builder.add_step(
+        step_type=MakeSecurityRecommendationsStep,
+        factory_function=partial(make_security_recommendation_step_factory,
+                                 chat_history=chat_history,
+                                 emit_event=emit_event)
+    )
+    build_azure_policy_step = process_builder.add_step(
+        step_type=BuildAzurePolicyStep,
+        factory_function=partial(build_azure_policy_step_factory,
+                                 chat_history=chat_history,
+                                 emit_event=emit_event)
+    )
+    write_terraform_step = process_builder.add_step(
+        step_type=WriteTerraformStep,
+        factory_function=partial(write_terraform_step_factory,
+                                 chat_history=chat_history,
+                                 emit_event=emit_event)
+    )
+
+    return retrieve_internal_security_recommendations, retrieve_public_documentation_step, make_security_recommendation_step, build_azure_policy_step, write_terraform_step
 
 
 __all__ = [

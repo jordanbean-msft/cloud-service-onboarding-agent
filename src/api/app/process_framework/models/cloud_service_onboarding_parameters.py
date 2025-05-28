@@ -12,9 +12,9 @@ class CloudServiceOnboardingParameters(KernelBaseModel):
     security_recommendations: str = ""
     azure_policy: str = ""
     terraform_code: str = ""
-    chat_history: ChatHistory = ChatHistory()
+    # chat_history: ChatHistory = ChatHistory()
     error_message: str = ""
-    emit_event: Callable[..., Any] = lambda x: None  # Default to a no-op function
+    # emit_event: Callable[..., Any] = lambda x: None  # Default to a no-op function
 
 
 __all__ = [

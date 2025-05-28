@@ -1,3 +1,4 @@
+import json
 import logging
 
 from opentelemetry import trace
@@ -5,11 +6,51 @@ from semantic_kernel.contents import (ChatHistory, ChatMessageContent,
                                       FunctionCallContent,
                                       FunctionResultContent)
 
+from app.models.chat_output import ChatOutput, serialize_chat_output
+from app.models.content_type_enum import ContentTypeEnum
 from app.services.agents import get_create_agent_manager
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
+async def post_emit_event(emit_event, content: str, thread_id: str = "asdf"):
+    if emit_event is not None:
+        await emit_event(json.dumps(
+            obj=ChatOutput(
+                content_type=ContentTypeEnum.MARKDOWN,
+                content=content,
+                thread_id=thread_id,
+            ),
+            default=serialize_chat_output,
+        ) + "\n")
+
+async def post_beginning_info(title, message, emit_event):
+    final_response = f"""
+***
+## {title}
+{message}
+"""
+    logger.info(final_response)
+
+    await post_emit_event(emit_event, final_response)
+
+async def post_end_info(message, emit_event):
+    final_response = f"""
+{message}
+"""
+    logger.info(final_response)
+
+    await post_emit_event(emit_event, final_response)
+
+async def post_error(title, exception, emit_event):
+    final_response = f"""
+***
+**{title}**
+{exception}
+"""
+    logger.error(final_response)
+
+    await post_emit_event(emit_event, final_response)
 
 async def on_intermediate_message(message: ChatMessageContent) -> None:
     for item in message.items or []:
@@ -53,4 +94,7 @@ async def call_agent(agent_name: str,
 __all__ = [
     "on_intermediate_message",
     "call_agent",
+    "post_beginning_info",
+    "post_end_info",
+    "post_error",
 ]
