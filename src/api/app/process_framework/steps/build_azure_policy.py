@@ -8,13 +8,14 @@ from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.processes.kernel_process import (
-    KernelProcessStep, KernelProcessStepContext,
-    kernel_process_step_metadata)
+    KernelProcessStep, KernelProcessStepContext, kernel_process_step_metadata)
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.utilities.utilities import (call_agent,
-                                                       on_intermediate_message, post_intermediate_info, post_error, post_beginning_info)
+                                                       post_beginning_info,
+                                                       post_error,
+                                                       post_intermediate_info)
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -53,8 +54,8 @@ You are a helpful assistant that builds Azure Policy security policies. You will
     @kernel_function(name=Functions.BuildAzurePolicy)
     async def build_azure_policy(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Build Azure Policy",
-                        message=f"Building Azure policy for cloud service: {params.cloud_service_name}...\n",
-                        post_intermediate_message=self.state.post_intermediate_message)
+                                  message=f"Building Azure policy for cloud service: {params.cloud_service_name}...\n",
+                                  post_intermediate_message=self.state.post_intermediate_message)
 
         try:
             if self.state.chat_history is None:
@@ -68,7 +69,6 @@ You are a helpful assistant that builds Azure Policy security policies. You will
             async for response in call_agent(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
-                on_intermediate_message_param=on_intermediate_message
             ):
                 final_response += response
                 await post_intermediate_info(message=response,
@@ -106,6 +106,7 @@ You are a helpful assistant that builds Azure Policy security policies. You will
                     error_message=str(e),
                 )
             )
+
 
 __all__ = [
     "BuildAzurePolicyStep",

@@ -8,13 +8,14 @@ from semantic_kernel.contents import ChatHistory
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.processes.kernel_process import (
-    KernelProcessStep, KernelProcessStepContext,
-    kernel_process_step_metadata)
+    KernelProcessStep, KernelProcessStepContext, kernel_process_step_metadata)
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.utilities.utilities import (call_agent,
-                                                       on_intermediate_message, post_error, post_beginning_info, post_intermediate_info)
+                                                       post_beginning_info,
+                                                       post_error,
+                                                       post_intermediate_info)
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -55,8 +56,8 @@ You are a helpful assistant that makes security recommendations for cloud servic
     @kernel_function(name=Functions.MakeSecurityRecommendations)
     async def make_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
         await post_beginning_info(title="Make Security Recommendations",
-                        message=f"Running analysis on cloud service: {params.cloud_service_name}...\n",
-                        post_intermediate_message=self.state.post_intermediate_message)
+                                  message=f"Running analysis on cloud service: {params.cloud_service_name}...\n",
+                                  post_intermediate_message=self.state.post_intermediate_message)
 
         try:
             if self.state.chat_history is None:
@@ -69,8 +70,7 @@ You are a helpful assistant that makes security recommendations for cloud servic
             final_response = ""
             async for response in call_agent(
                 agent_name="cloud-security-agent",
-                chat_history=self.state.chat_history,
-                on_intermediate_message_param=on_intermediate_message
+                chat_history=self.state.chat_history
             ):
                 final_response += response
                 await post_intermediate_info(message=response,
@@ -108,6 +108,7 @@ You are a helpful assistant that makes security recommendations for cloud servic
                     error_message=str(e),
                 )
             )
+
 
 __all__ = [
     "MakeSecurityRecommendationsStep",

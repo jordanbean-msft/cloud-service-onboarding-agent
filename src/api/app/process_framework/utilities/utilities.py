@@ -14,7 +14,10 @@ from app.services.agents import get_create_agent_manager
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
-async def _post_intermediate_message(post_intermediate_message, content: str, thread_id: str = "asdf"):
+
+async def _post_intermediate_message(post_intermediate_message,
+                                     content: str,
+                                     thread_id: str = "asdf"):
     if post_intermediate_message is not None:
         await post_intermediate_message(json.dumps(
             obj=ChatOutput(
@@ -24,6 +27,7 @@ async def _post_intermediate_message(post_intermediate_message, content: str, th
             ),
             default=serialize_chat_output,
         ) + "\n")
+
 
 async def post_beginning_info(title, message, post_intermediate_message):
     final_response = f"""
@@ -35,8 +39,10 @@ async def post_beginning_info(title, message, post_intermediate_message):
 
     await _post_intermediate_message(post_intermediate_message, final_response)
 
+
 async def post_intermediate_info(message, post_intermediate_message):
     await _post_intermediate_message(post_intermediate_message, message)
+
 
 async def post_error(title, exception, post_intermediate_message):
     final_response = f"""
@@ -48,7 +54,8 @@ async def post_error(title, exception, post_intermediate_message):
 
     await _post_intermediate_message(post_intermediate_message, final_response)
 
-async def on_intermediate_message(message: ChatMessageContent) -> None:
+
+async def print_on_intermediate_message(message: ChatMessageContent):
     for item in message.items or []:
         if isinstance(item, FunctionCallContent):
             logger.debug(f"Function Call:> {item.name} with arguments: {item.arguments}")
@@ -59,8 +66,7 @@ async def on_intermediate_message(message: ChatMessageContent) -> None:
 
 
 async def call_agent(agent_name: str,
-                     chat_history: ChatHistory,
-                     on_intermediate_message_param) -> AsyncIterable[str]:
+                     chat_history: ChatHistory) -> AsyncIterable[str]:
     agent_manager = get_create_agent_manager()
 
     agent = None
@@ -72,23 +78,22 @@ async def call_agent(agent_name: str,
     if not agent:
         raise ValueError(f"{agent_name} not found.")
 
+    thread = None
     try:
         async for response in agent.invoke_stream(
+            thread=thread,
             messages=chat_history.messages,  # type: ignore
-            on_intermediate_message=on_intermediate_message_param
+            on_intermediate_message=print_on_intermediate_message,
         ):
-            #final_response += response.content.content
+            thread = response.thread
             yield response.content.content
     except Exception as e:
         logger.error(f"Error calling agent {agent_name}: {e}")
         raise
 
-    #logger.debug(f"Agent {agent_name} response: {final_response}")
-
-    #return final_response
+    logger.debug(f"Final thread ID: {thread.id if thread else 'None'}")
 
 __all__ = [
-    "on_intermediate_message",
     "call_agent",
     "post_beginning_info",
     "post_intermediate_info",

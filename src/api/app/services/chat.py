@@ -4,8 +4,8 @@ import logging
 from azure.ai.agents.models import ThreadMessageOptions
 from opentelemetry import trace
 from semantic_kernel import Kernel
-from semantic_kernel.contents import (ChatHistory, AuthorRole)
 from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgentThread
+from semantic_kernel.contents import AuthorRole, ChatHistory
 from semantic_kernel.processes.kernel_process import KernelProcessEvent
 from semantic_kernel.processes.local_runtime.local_kernel_process import start
 
@@ -50,7 +50,7 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
             if not cloud_security_agent:
                 return f"cloud-security-agent not found."
 
-            thread = await get_agent_thread(chat_input, azure_ai_client, cloud_security_agent)
+            thread = await get_agent_thread(chat_input.thread_id, azure_ai_client, cloud_security_agent)
 
             chat_history = ChatHistory()
 
@@ -115,8 +115,8 @@ async def build_chat_results(chat_input: ChatInput, azure_ai_client: AIProjectCl
         await queue.put(None)
 
 
-async def get_agent_thread(chat_input, azure_ai_client, cloud_security_agent):
-    thread_messages = await get_thread(ChatGetThreadInput(thread_id=chat_input.thread_id), azure_ai_client)
+async def get_agent_thread(thread_id, azure_ai_client, cloud_security_agent):
+    thread_messages = await get_thread(ChatGetThreadInput(thread_id=thread_id), azure_ai_client)
 
     messages = []
 
@@ -129,7 +129,7 @@ async def get_agent_thread(chat_input, azure_ai_client, cloud_security_agent):
 
     thread = AzureAIAgentThread(
         client=cloud_security_agent.client,
-        thread_id=chat_input.thread_id,
+        thread_id=thread_id,
         messages=messages
     )
 
