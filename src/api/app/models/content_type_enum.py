@@ -1,5 +1,5 @@
 from enum import StrEnum, auto
-from semantic_kernel.kernel_pydantic import KernelBaseModel
+
 
 class ContentTypeEnum(StrEnum):
     MARKDOWN = auto()
@@ -7,6 +7,8 @@ class ContentTypeEnum(StrEnum):
     # EXCEPTION = auto()
     # MATPLOTLIB = auto()
     # IMAGE = auto()
+    ANNOTATION = auto()
     FILE = auto()
+
 
 __all__ = ["ContentTypeEnum"]

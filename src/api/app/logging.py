@@ -1,12 +1,9 @@
-import asyncio
 import logging
 
-from azure.monitor.opentelemetry.exporter import (
-    AzureMonitorLogExporter,
-    AzureMonitorMetricExporter,
-    AzureMonitorTraceExporter,
-)
-
+from azure.monitor.opentelemetry.exporter import (AzureMonitorLogExporter,
+                                                  AzureMonitorMetricExporter,
+                                                  AzureMonitorTraceExporter)
+from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry._logs import set_logger_provider
 from opentelemetry.metrics import set_meter_provider
 from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
@@ -20,7 +17,6 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.semconv.resource import ResourceAttributes
 from opentelemetry.trace import set_tracer_provider
 
-
 from app.config import get_settings
 
 # Replace the connection string with your Application Insights connection string
@@ -31,6 +27,10 @@ resource = Resource.create({ResourceAttributes.SERVICE_NAME: "cloud-service-onbo
 
 
 def set_up_logging():
+    configure_azure_monitor(
+        connection_string=connection_string,
+    )
+
     exporter = AzureMonitorLogExporter(connection_string=connection_string)
 
     # Create and set a global logger provider for the application.

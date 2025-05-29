@@ -83,13 +83,13 @@ Perform each of the following sections in a new shell window.
 1.  Install the prerequisites
 
     ```shell
-    pip install -r .\requirements.txt
+    pip install -r ./requirements.txt
     ```
 
 1.  Run the API
 
     ```shell
-    python -m uvicorn app.main:app --env-file .env --log-level debug
+    python -m uvicorn app.main:app --log-level debug
     ```
 
 ### Web
@@ -117,13 +117,7 @@ Perform each of the following sections in a new shell window.
 1.  Install the prerequisites
 
     ```shell
-    pip install -r .\requirements.txt
-    ```
-
-1.  Set an environment variable with the URL & port of the API (PowerShell)
-
-    ```shell
-    $env:services__api__api__0="http://127.0.0.1:8000"
+    pip install -r ./requirements.txt
     ```
 
 1.  Run the web app

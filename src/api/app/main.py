@@ -2,10 +2,11 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-#from app.routers import chat
 from app.routers import chat, liveness, readiness, startup
-from .logging import set_up_logging, set_up_tracing, set_up_metrics
 from app.services.agents import setup_agents
+
+from .logging import set_up_logging, set_up_metrics, set_up_tracing
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):

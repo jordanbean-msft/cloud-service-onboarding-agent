@@ -6,3 +6,5 @@ disable=
     missing-class-docstring,
     broad-exception-caught,
     too-few-public-methods,
+    too-many-arguments,
+    too-many-positional-arguments,

@@ -1,24 +1,24 @@
 import os
-import json
-import requests
-from msal import PublicClientApplication
-from yaml import load, Loader
-from websockets.sync.client import connect
 
-from models.chat_input import ChatInput
-from models.chat_get_thread import ChatGetThreadInput
+import requests
+
 from models.chat_get_image import ChatGetImageInput
 from models.chat_get_image_contents import ChatGetImageContents
+from models.chat_get_thread import ChatGetThreadInput
+from models.chat_input import ChatInput
+from config import get_settings
 
-api_base_url = os.getenv("services__api__api__0", "")
+api_base_url = get_settings().services__api__api__0
+
 
 def create_thread():
     result = requests.post(url=f"{api_base_url}/v1/create_thread",
-                  timeout=30)
+                           timeout=30)
     if result.ok:
         return result.json()['thread_id']
 
     return None
+
 
 def chat(thread_id,
          content):
@@ -27,20 +27,14 @@ def chat(thread_id,
                            content=content)
 
     response = requests.post(url=f"{api_base_url}/v1/chat",
-                               json=chat_input.model_dump(mode="json"),
-                               stream=True,
-                               timeout=300
-                )
+                             json=chat_input.model_dump(mode="json"),
+                             stream=True,
+                             timeout=1000
+                             )
+    for line in response.iter_lines(decode_unicode=True):
+        if line:  # skip empty lines
+            yield line
 
-    buffer = ""
-    for chunk in response.iter_content(chunk_size=None):
-        if not chunk:
-            continue
-        buffer += chunk.decode('utf-8')
-        while '\n' in buffer:
-            line, buffer = buffer.split('\n', 1)
-            if line.strip():
-                yield line  # Each line is a complete JSON object
 
 def get_thread(thread_id):
     get_thread_input = ChatGetThreadInput(thread_id=thread_id)
@@ -50,6 +44,7 @@ def get_thread(thread_id):
                             timeout=60)
 
     return response.json()
+
 
 def get_image(file_id):
     get_image_input = ChatGetImageInput(file_id=file_id)
@@ -62,6 +57,7 @@ def get_image(file_id):
 
     return image.content
 
+
 def get_image_contents(thread_id):
     get_image_input = ChatGetImageContents(thread_id=thread_id)
 
@@ -72,5 +68,6 @@ def get_image_contents(thread_id):
     )
 
     return image_contents.json()
+
 
 __all__ = ["chat", "get_image", "get_thread", "get_image_contents", "create_thread",]

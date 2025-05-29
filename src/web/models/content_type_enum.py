@@ -1,5 +1,6 @@
 from enum import StrEnum, auto
 
+
 class ContentTypeEnum(StrEnum):
     MARKDOWN = auto()
     # DATAFRAME = auto()
@@ -7,5 +8,6 @@ class ContentTypeEnum(StrEnum):
     # MATPLOTLIB = auto()
     # IMAGE = auto()
     FILE = auto()
+
 
 __all__ = ["ContentTypeEnum"]
