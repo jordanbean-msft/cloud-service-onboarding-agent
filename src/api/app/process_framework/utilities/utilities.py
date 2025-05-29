@@ -170,6 +170,7 @@ async def invoke_agent(agent_name: str,
             thread=thread,
             messages=chat_history.messages,  # type: ignore
             on_intermediate_message=print_on_intermediate_message,
+            parallel_tool_calls=False
         ):
             thread = response.thread
 

@@ -100,34 +100,34 @@ def setup_events(process_builder,
                  build_azure_policy_step,
                  write_terraform_step):
     process_builder.on_input_event("Start").send_event_to(
-        #target=retrieve_internal_security_recommendations,
-        target=make_security_recommendation_step,
+        target=retrieve_internal_security_recommendations,
+        # target=make_security_recommendation_step,
         parameter_name="params",
     )
 
-    # retrieve_internal_security_recommendations.on_event(
-    #     RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsComplete
-    # ).send_event_to(
-    #     target=retrieve_public_documentation_step,
-    #     function_name=RetrievePublicDocumentationStep.Functions.RetrievePublicDocumentation,
-    #     parameter_name="params"
-    # )
+    retrieve_internal_security_recommendations.on_event(
+        RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsComplete
+    ).send_event_to(
+        target=retrieve_public_documentation_step,
+        function_name=RetrievePublicDocumentationStep.Functions.RetrievePublicDocumentation,
+        parameter_name="params"
+    )
 
-    # retrieve_internal_security_recommendations.on_event(
-    #     RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsError
-    # ).stop_process()
+    retrieve_internal_security_recommendations.on_event(
+        RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsError
+    ).stop_process()
 
-    # retrieve_public_documentation_step.on_event(
-    #     RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationComplete
-    # ).send_event_to(
-    #     target=make_security_recommendation_step,
-    #     function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations,
-    #     parameter_name="params"
-    # )
+    retrieve_public_documentation_step.on_event(
+        RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationComplete
+    ).send_event_to(
+        target=make_security_recommendation_step,
+        function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations,
+        parameter_name="params"
+    )
 
-    # retrieve_public_documentation_step.on_event(
-    #     RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationError
-    # ).stop_process()
+    retrieve_public_documentation_step.on_event(
+        RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationError
+    ).stop_process()
 
     make_security_recommendation_step.on_event(
         MakeSecurityRecommendationsStep.OutputEvents.MakeSecurityRecommendationsComplete
