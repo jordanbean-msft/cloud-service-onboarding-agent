@@ -1,25 +1,20 @@
 import json
 import logging
-from math import log
-from typing import Tuple
 
-from openai import AsyncAzureOpenAI
 from opentelemetry import trace
 from semantic_kernel import Kernel
-from semantic_kernel.agents import OrchestrationHandoffs, HandoffOrchestration, AzureAIAgent, ChatCompletionAgent
-from semantic_kernel.agents.runtime import InProcessRuntime
-from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import AzureChatCompletion
+from semantic_kernel.contents import AuthorRole, ChatHistory
+from semantic_kernel.processes.kernel_process import KernelProcessEvent
+from semantic_kernel.processes.local_runtime.local_kernel_process import start
 
-from app.agents import cloud_security_process_agent
-from app.agents.cloud_security_process_agent.main import create_cloud_security_process_agent
-from app.config.config import get_settings
 from app.models.chat_input import ChatInput
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
-from app.plugins.cloud_security_plugin import CloudSecurityPlugin
+from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
+from app.process_framework.processes.cloud_service_onboarding_process import build_process_cloud_service_onboarding
 from app.routers.context import chat_context_var
-from app.services.agents import get_create_agent_manager
-from app.services.dependencies import create_kernel
+from app.services.dependencies import create_kernel, get_create_ai_project_client, get_create_kernel
+from app.services.threads import get_agent_thread
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
@@ -29,40 +24,31 @@ async def build_chat_results(chat_input: ChatInput):
         post_intermediate_message, _, queue = chat_context_var.get()
 
         try:
-            kernel = await create_kernel()
+            chat_history = await build_chat_history(chat_input.thread_id)
 
-            # kernel.add_plugin(CloudSecurityPlugin(
-            #     #post_intermediate_message=post,
-            # ))
+            process = build_process_cloud_service_onboarding(chat_history=chat_history,
+                                                            post_intermediate_message=post_intermediate_message)
 
-            cloud_security_process_agent = await create_cloud_security_process_agent(
-                kernel=kernel
-            )
+            async with await start(
+                process=process,
+                kernel=Kernel(),
+                initial_event=KernelProcessEvent(id="Start", data=CloudServiceOnboardingParameters(
+                    cloud_service_name=chat_input.content,
+                )),
+            ) as process_context:
+                process_state = await process_context.get_state()
 
-            orchestration_agent = get_orchestration_agent()
 
-            handoff_orchestration, runtime = setup_orchestration(cloud_security_process_agent=cloud_security_process_agent,
-                                                                 orchestration_agent=orchestration_agent)
 
-            runtime.start()
+            # await post_intermediate_message(json.dumps(
+            #         obj=ChatOutput(
+            #             content_type=ContentTypeEnum.MARKDOWN,
+            #             content=f"Orchestration result: {value}",
+            #             thread_id=chat_input.thread_id,
+            #         ),
+            #         default=serialize_chat_output,
+            #     ) + "\n")
 
-            orchestration_result = await handoff_orchestration.invoke(
-                task=chat_input.content,
-                runtime=runtime,
-            )
-
-            value = await orchestration_result.get()
-
-            await post_intermediate_message(json.dumps(
-                    obj=ChatOutput(
-                        content_type=ContentTypeEnum.MARKDOWN,
-                        content=f"Orchestration result: {value}",
-                        thread_id=chat_input.thread_id,
-                    ),
-                    default=serialize_chat_output,
-                ) + "\n")
-
-            await runtime.stop()
 
         except Exception as e:
             error_message = f"""
@@ -86,52 +72,24 @@ async def build_chat_results(chat_input: ChatInput):
 
         await queue.put(None)
 
-def setup_orchestration(cloud_security_process_agent,
-                        orchestration_agent):
-    handoffs = (
-                OrchestrationHandoffs()
-                .add_many(
-                    source_agent=orchestration_agent.name,
-                    target_agents={
-                        cloud_security_process_agent.name: "Transfer to this agent if the user is asking about cloud service onboarding."
-                    }
-                )
-            )
+async def build_chat_history(thread_id):
+    thread = await get_agent_thread(thread_id=thread_id, azure_ai_client=get_create_ai_project_client())
 
-    handoff_orchestration = HandoffOrchestration(
-                members=[
-                    orchestration_agent,
-                    cloud_security_process_agent
-                ],
-                handoffs=handoffs,
-                agent_response_callback=agent_response_callback,
-            )
+    chat_history = ChatHistory()
 
-    runtime = InProcessRuntime()
-    return handoff_orchestration, runtime
-
-def get_orchestration_agent() -> ChatCompletionAgent:
-    agent_manager = get_create_agent_manager()
-    agent_names = [
-        "orchestration-agent"
-    ]
-    agents = {}
-
-    for a in agent_manager:
-        if a.name in agent_names:
-            agents[a.name] = a
-
-    missing = [name for name in agent_names if name not in agents]
-    if missing:
-        raise ValueError(f"Agent(s) not found: {', '.join(missing)}")
-
-    return agents["orchestration-agent"]
-
-def agent_response_callback(message):
-    agent_response = f"Agent response: {getattr(message, 'content', str(message))}"
-
-    logger.debug(agent_response)
-
+    async for message in thread.get_messages():
+        match message.role:
+            case AuthorRole.SYSTEM:
+                chat_history.add_system_message(message.content)
+            case AuthorRole.USER:
+                chat_history.add_user_message(message.content)
+            case AuthorRole.ASSISTANT:
+                    chat_history.add_assistant_message(message.content)
+            case AuthorRole.TOOL:
+                chat_history.add_tool_message(message.content)
+            case AuthorRole.DEVELOPER:
+                chat_history.add_developer_message(message.content)
+    return chat_history
 
 __all__ = [
     "build_chat_results",
