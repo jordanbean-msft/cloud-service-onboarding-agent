@@ -1,11 +1,14 @@
 import json
 import logging
-from typing import AsyncIterable
+from typing import Any, AsyncIterable
 
 from opentelemetry import trace
 from semantic_kernel.contents import (ChatHistory, ChatMessageContent,
                                       FunctionCallContent,
                                       FunctionResultContent)
+from semantic_kernel.contents.streaming_annotation_content import StreamingAnnotationContent
+from semantic_kernel.contents.streaming_file_reference_content import StreamingFileReferenceContent
+from semantic_kernel.contents.streaming_text_content import StreamingTextContent
 
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
@@ -16,15 +19,38 @@ tracer = trace.get_tracer(__name__)
 
 
 async def _post_intermediate_message(post_intermediate_message,
-                                     content: str,
+                                     content: Any,
                                      thread_id: str = "asdf"):
     if post_intermediate_message is not None:
-        await post_intermediate_message(json.dumps(
-            obj=ChatOutput(
+
+        obj = None
+        if isinstance(content, StreamingTextContent):
+            obj = ChatOutput(
+                content_type=ContentTypeEnum.MARKDOWN,
+                content=content.text,
+                thread_id=thread_id,
+            )
+        elif isinstance(content, StreamingAnnotationContent):
+            obj = ChatOutput(
+                content_type=ContentTypeEnum.ANNOTATION,
+                content=content.quote if content.quote else '',
+                thread_id=thread_id,
+            )
+        elif isinstance(content, StreamingFileReferenceContent):
+            obj = ChatOutput(
+                content_type=ContentTypeEnum.FILE,
+                content=content.file_id if content.file_id else '',
+                thread_id=thread_id,
+            )
+        elif isinstance(content, str):
+            obj = ChatOutput(
                 content_type=ContentTypeEnum.MARKDOWN,
                 content=content,
                 thread_id=thread_id,
-            ),
+            )
+
+        await post_intermediate_message(json.dumps(
+            obj=obj,
             default=serialize_chat_output,
         ) + "\n")
 
@@ -35,7 +61,7 @@ async def post_beginning_info(title, message, post_intermediate_message):
 ## {title}
 {message}
 """
-    logger.info(final_response)
+    logger.debug(final_response)
 
     await _post_intermediate_message(post_intermediate_message, final_response)
 
@@ -79,6 +105,8 @@ async def call_agent(agent_name: str,
         raise ValueError(f"{agent_name} not found.")
 
     thread = None
+    annotations = []
+    file_references = []
     try:
         async for response in agent.invoke_stream(
             thread=thread,
@@ -86,7 +114,18 @@ async def call_agent(agent_name: str,
             on_intermediate_message=print_on_intermediate_message,
         ):
             thread = response.thread
-            yield response.content.content
+
+            for item in response.items:
+                if isinstance(item, StreamingTextContent):
+                    yield item.text
+                if isinstance(item, StreamingAnnotationContent):
+                    annotations.append(item)
+                elif isinstance(item, StreamingFileReferenceContent):
+                    file_references.append(item)
+                #else:
+                    #logger.warning(f"Unknown content type: {type(item)}")
+
+            #yield response.content.content
     except Exception as e:
         logger.error(f"Error calling agent {agent_name}: {e}")
         raise

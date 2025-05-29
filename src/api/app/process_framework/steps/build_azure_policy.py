@@ -9,6 +9,9 @@ from semantic_kernel.functions import kernel_function
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.processes.kernel_process import (
     KernelProcessStep, KernelProcessStepContext, kernel_process_step_metadata)
+from semantic_kernel.contents.streaming_annotation_content import StreamingAnnotationContent
+from semantic_kernel.contents.streaming_file_reference_content import StreamingFileReferenceContent
+from semantic_kernel.contents.streaming_text_content import StreamingTextContent
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
@@ -71,7 +74,9 @@ You are a helpful assistant that builds Azure Policy security policies. You will
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
             ):
+                #if isinstance(response, StreamingTextContent):
                 final_response += response
+
                 await post_intermediate_info(message=response,
                                              post_intermediate_message=self.state.post_intermediate_message)
 

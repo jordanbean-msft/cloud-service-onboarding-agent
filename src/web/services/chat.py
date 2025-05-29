@@ -29,7 +29,7 @@ def chat(thread_id,
     response = requests.post(url=f"{api_base_url}/v1/chat",
                              json=chat_input.model_dump(mode="json"),
                              stream=True,
-                             timeout=300
+                             timeout=1000
                              )
     for line in response.iter_lines(decode_unicode=True):
         if line:  # skip empty lines

@@ -10,14 +10,17 @@ from semantic_kernel.processes.local_runtime.local_kernel_process import start
 from app.models.chat_input import ChatInput
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
-from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
-from app.process_framework.processes.cloud_service_onboarding_process import build_process_cloud_service_onboarding
+from app.process_framework.models.cloud_service_onboarding_parameters import \
+    CloudServiceOnboardingParameters
+from app.process_framework.processes.cloud_service_onboarding_process import \
+    build_process_cloud_service_onboarding
 from app.routers.context import chat_context_var
 from app.services.dependencies import get_create_ai_project_client
 from app.services.threads import get_agent_thread
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
+
 
 async def build_chat_results(chat_input: ChatInput):
     with tracer.start_as_current_span(name="build_chat_results"):
@@ -27,7 +30,7 @@ async def build_chat_results(chat_input: ChatInput):
             chat_history = await build_chat_history(chat_input.thread_id)
 
             process = build_process_cloud_service_onboarding(chat_history=chat_history,
-                                                            post_intermediate_message=post_intermediate_message)
+                                                             post_intermediate_message=post_intermediate_message)
 
             async with await start(
                 process=process,
@@ -37,7 +40,6 @@ async def build_chat_results(chat_input: ChatInput):
                 )),
             ) as process_context:
                 process_state = await process_context.get_state()
-
 
         except Exception as e:
             error_message = f"""
@@ -61,6 +63,7 @@ async def build_chat_results(chat_input: ChatInput):
 
         await queue.put(None)
 
+
 async def build_chat_history(thread_id):
     thread = await get_agent_thread(thread_id=thread_id, azure_ai_client=get_create_ai_project_client())
 
@@ -73,7 +76,7 @@ async def build_chat_history(thread_id):
             case AuthorRole.USER:
                 chat_history.add_user_message(message.content)
             case AuthorRole.ASSISTANT:
-                    chat_history.add_assistant_message(message.content)
+                chat_history.add_assistant_message(message.content)
             case AuthorRole.TOOL:
                 chat_history.add_tool_message(message.content)
             case AuthorRole.DEVELOPER:

@@ -9,6 +9,9 @@ from semantic_kernel.functions import kernel_function
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.processes.kernel_process import (
     KernelProcessStep, KernelProcessStepContext, kernel_process_step_metadata)
+from semantic_kernel.contents.streaming_annotation_content import StreamingAnnotationContent
+from semantic_kernel.contents.streaming_file_reference_content import StreamingFileReferenceContent
+from semantic_kernel.contents.streaming_text_content import StreamingTextContent
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
@@ -33,7 +36,7 @@ class RetrievePublicDocumentationStep(KernelProcessStep[CloudServiceOnboardingSt
         default_factory=CloudServiceOnboardingState)
 
     system_prompt: ClassVar[str] = """
-You are a helpful assistant that retrieves public security documentation for cloud services. You will be given a cloud service name. Your job is to find relevant security recommendations for the service you are provided. You will be given a list of internal security recommendations that will help you determine what public documentation to retrieve. The public documentation should be comprehensive and follow best practices for cloud security. The public documentation will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the public documentation that will be used to create the policy.
+You are a helpful assistant that retrieves public security documentation for cloud services. You will be given a cloud service name. Your job is to find relevant security recommendations for the service you are provided. You will be given a list of internal security recommendations that will help you determine what public documentation to retrieve. The public documentation should be comprehensive and follow best practices for cloud security. The public documentation will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the public documentation that will be used to create the policy. Make sure and do lookups for each item in the internal security recommendations to ensure you provide relevant documentation for each item. If you cannot find documentation for a specific item, please indicate that in your response. Be sure to check and see if there are already existing Azure Policies, you should provide them.
 """
 
     class Functions(StrEnum):
@@ -63,7 +66,9 @@ You are a helpful assistant that retrieves public security documentation for clo
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history,
             ):
+                #if isinstance(response, StreamingTextContent):
                 final_response += response
+
                 await post_intermediate_info(message=response,
                                              post_intermediate_message=self.state.post_intermediate_message)
 
