@@ -13,7 +13,7 @@ from app.models.content_type_enum import ContentTypeEnum
 from app.process_framework.models.cloud_service_onboarding_parameters import CloudServiceOnboardingParameters
 from app.process_framework.processes.cloud_service_onboarding_process import build_process_cloud_service_onboarding
 from app.routers.context import chat_context_var
-from app.services.dependencies import create_kernel, get_create_ai_project_client, get_create_kernel
+from app.services.dependencies import get_create_ai_project_client
 from app.services.threads import get_agent_thread
 
 logger = logging.getLogger("uvicorn.error")
@@ -37,17 +37,6 @@ async def build_chat_results(chat_input: ChatInput):
                 )),
             ) as process_context:
                 process_state = await process_context.get_state()
-
-
-
-            # await post_intermediate_message(json.dumps(
-            #         obj=ChatOutput(
-            #             content_type=ContentTypeEnum.MARKDOWN,
-            #             content=f"Orchestration result: {value}",
-            #             thread_id=chat_input.thread_id,
-            #         ),
-            #         default=serialize_chat_output,
-            #     ) + "\n")
 
 
         except Exception as e:

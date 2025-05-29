@@ -6,10 +6,7 @@ from semantic_kernel import Kernel
 from semantic_kernel.agents import Agent
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 
-from app.agents import cloud_security_process_agent
 from app.agents.cloud_security_agent import create_cloud_security_agent
-from app.agents.cloud_security_process_agent.main import create_cloud_security_process_agent
-from app.agents.orchestration_agent import create_orchestration_agent
 from app.config.config import get_settings
 from app.services.dependencies import (get_create_ai_project_client,
                                        get_create_async_azure_ai_client)
@@ -28,15 +25,9 @@ async def setup_agents():
         kernel=kernel
     )
 
-    orchestration_agent = await create_orchestration_agent(
-        kernel=kernel
-    )
-
     agent_manager = get_create_agent_manager()
 
     agent_manager.append(cloud_security_agent)
-    agent_manager.append(orchestration_agent)
-
 
 async def delete_agents():
     agent_manager = get_create_agent_manager()
