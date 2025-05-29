@@ -12,6 +12,7 @@ from semantic_kernel.processes.kernel_process import (
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
+from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (call_agent,
                                                        post_beginning_info,
                                                        post_error,
@@ -27,9 +28,9 @@ tracer = trace.get_tracer(__name__)
 #     internal_security_recommendations: str
 
 
-class BuildAzurePolicyState(KernelBaseModel):
-    chat_history: ChatHistory | None = None
-    post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
+# class BuildAzurePolicyState(KernelBaseModel):
+#     chat_history: ChatHistory | None = None
+#     post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
 
 # class BuildAzurePolicyOutput(BaseModel):
 #     azure_policy: str
@@ -37,8 +38,8 @@ class BuildAzurePolicyState(KernelBaseModel):
 
 
 @kernel_process_step_metadata("BuildAzurePolicyStep")
-class BuildAzurePolicyStep(KernelProcessStep[BuildAzurePolicyState]):
-    state: BuildAzurePolicyState = Field(default_factory=BuildAzurePolicyState)  # type: ignore
+class BuildAzurePolicyStep(KernelProcessStep[CloudServiceOnboardingState]):
+    state: CloudServiceOnboardingState = Field(default_factory=CloudServiceOnboardingState)  # type: ignore
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that builds Azure Policy security policies. You will be given a cloud service name, public documentation, and internal security recommendations. Your job is to build an Azure Policy that is easy to integrate into a Terraform module. The policy should be based on the provided documentation and recommendations. Make sure you read the internal security recommendations carefully and incorporate them into the policy. The policy should be comprehensive and follow best practices for Azure Policy.
 """

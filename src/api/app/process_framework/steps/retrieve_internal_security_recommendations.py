@@ -12,6 +12,7 @@ from semantic_kernel.processes.kernel_process import (
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
+from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (call_agent,
                                                        post_beginning_info,
                                                        post_error,
@@ -21,15 +22,15 @@ logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 
-class RetrieveInternalSecurityRecommendationsState(KernelBaseModel):
-    chat_history: ChatHistory | None = None
-    post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
+# class RetrieveInternalSecurityRecommendationsState(KernelBaseModel):
+#     chat_history: ChatHistory | None = None
+#     post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
 
 
 @kernel_process_step_metadata("RetrieveInternalSecurityRecommendationsStep")
-class RetrieveInternalSecurityRecommendationsStep(KernelProcessStep[RetrieveInternalSecurityRecommendationsState]):
-    state: RetrieveInternalSecurityRecommendationsState = Field(  # type: ignore
-        default_factory=RetrieveInternalSecurityRecommendationsState)
+class RetrieveInternalSecurityRecommendationsStep(KernelProcessStep[CloudServiceOnboardingState]):
+    state: CloudServiceOnboardingState = Field(  # type: ignore
+        default_factory=CloudServiceOnboardingState)
 
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that retrieves internal security recommendations for cloud services. You will be given a cloud service name. Your job is to retrieve any relevant internal security recommendations for the service. Make sure and follow links to find additional information. The internal security recommendations should be comprehensive and follow best practices for cloud security. These recommendations will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the internal security recommendations that will be used to create the policy. The recommendations should be actionable and include specifics, not links to other documentation.

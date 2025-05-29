@@ -12,6 +12,7 @@ from semantic_kernel.processes.kernel_process import (
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
+from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (call_agent,
                                                        post_beginning_info,
                                                        post_error,
@@ -21,15 +22,15 @@ logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 
-class RetrievePublicDocumentationState(KernelBaseModel):
-    chat_history: ChatHistory | None = None
-    post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
+# class RetrievePublicDocumentationState(KernelBaseModel):
+#     chat_history: ChatHistory | None = None
+#     post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
 
 
 @kernel_process_step_metadata("RetrievePublicDocumentationStep")
-class RetrievePublicDocumentationStep(KernelProcessStep[RetrievePublicDocumentationState]):
-    state: RetrievePublicDocumentationState = Field(  # type: ignore
-        default_factory=RetrievePublicDocumentationState)
+class RetrievePublicDocumentationStep(KernelProcessStep[CloudServiceOnboardingState]):
+    state: CloudServiceOnboardingState = Field(  # type: ignore
+        default_factory=CloudServiceOnboardingState)
 
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that retrieves public security documentation for cloud services. You will be given a cloud service name. Your job is to find relevant security recommendations for the service you are provided. You will be given a list of internal security recommendations that will help you determine what public documentation to retrieve. The public documentation should be comprehensive and follow best practices for cloud security. The public documentation will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the public documentation that will be used to create the policy.

@@ -46,7 +46,6 @@ async def setup_file_search_tool(client: AIProjectClient) -> FileSearchTool:
 
 
 async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -> AzureAIAgent:
-
     azure_ai_agent = None
 
     async for agent in client.agents.list_agents():
@@ -56,7 +55,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
             azure_ai_agent = AzureAIAgent(
                 client=client,
                 definition=agent,
-                kernel=kernel
+                kernel=kernel,
             )
             break
 
@@ -92,7 +91,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
         azure_ai_agent = AzureAIAgent(
             client=client,
             definition=agent_definition,
-            kernel=kernel
+            kernel=kernel,
         )
 
     return azure_ai_agent

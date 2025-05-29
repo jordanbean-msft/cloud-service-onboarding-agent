@@ -10,14 +10,14 @@ from app.models.chat_get_image_contents import ChatGetImageContents
 from app.models.chat_get_thread import ChatGetThreadInput
 from app.models.chat_input import ChatInput
 from app.routers.context import build_chat_context, chat_context_var
-from app.services.chat import build_chat_results, create_thread, get_thread
-from app.services.dependencies import AIProjectClientDependency
+from app.services.chat import build_chat_results
+from app.services.threads import create_thread, get_thread
+from app.services.dependencies import AIProjectClientDependency, AsyncAzureAIClientDependency
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 router = APIRouter()
-
 
 @tracer.start_as_current_span(name="create_thread")
 @router.post("/create_thread")
@@ -29,7 +29,7 @@ async def create_thread_router(azure_ai_client: AIProjectClientDependency):
 @router.get("/get_thread")
 async def get_thread_router(thread_input: ChatGetThreadInput,
                             azure_ai_client: AIProjectClientDependency):
-    return await get_thread(thread_input, azure_ai_client)
+    return await get_thread(thread_input.thread_id, azure_ai_client)
 
 
 @tracer.start_as_current_span(name="get_image_contents")
@@ -75,13 +75,12 @@ async def get_image(thread_input: ChatGetImageInput,
 
 @tracer.start_as_current_span(name="chat")
 @router.post("/chat")
-async def post_chat(chat_input: ChatInput,
-                    azure_ai_client: AIProjectClientDependency):
+async def post_chat(chat_input: ChatInput):
     intermediate_message, close, queue = build_chat_context()
     chat_context_var.set((intermediate_message, close, queue))
 
     asyncio.create_task(
-        build_chat_results(chat_input, azure_ai_client)
+        build_chat_results(chat_input=chat_input)
     )
 
     async def event_generator():

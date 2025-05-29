@@ -13,6 +13,7 @@ from semantic_kernel.processes.kernel_process import (
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
+from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (call_agent,
                                                        post_beginning_info,
                                                        post_error,
@@ -22,14 +23,14 @@ logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
 
-class WriteTerraformState(KernelBaseModel):
-    chat_history: ChatHistory | None = None
-    post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
+# class WriteTerraformState(KernelBaseModel):
+#     chat_history: ChatHistory | None = None
+#     post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
 
 
 @kernel_process_step_metadata("WriteTerraformStep")
-class WriteTerraformStep(KernelProcessStep[WriteTerraformState]):
-    state: WriteTerraformState = Field(default_factory=WriteTerraformState)  # type: ignore
+class WriteTerraformStep(KernelProcessStep[CloudServiceOnboardingState]):
+    state: CloudServiceOnboardingState = Field(default_factory=CloudServiceOnboardingState)  # type: ignore
 
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that writes Terraform code for cloud services. You will be given a cloud service name, public documentation, internal security recommendations, and an Azure Policy. Your job is to write Terraform code that implements the Azure Policy and follows the recommendations. Do not write write code to deploy the cloud service itself, just the Terraform code that implements the Azure Policy. The Terraform code should be easy to integrate into a Terraform module and follow best practices for Terraform.
