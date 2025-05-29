@@ -16,7 +16,7 @@ from semantic_kernel.contents.streaming_text_content import StreamingTextContent
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
-from app.process_framework.utilities.utilities import (call_agent,
+from app.process_framework.utilities.utilities import (invoke_agent_stream,
                                                        post_beginning_info,
                                                        post_error,
                                                        post_intermediate_info)
@@ -61,12 +61,12 @@ You are a helpful assistant that retrieves internal security recommendations for
             )  # type: ignore
 
             final_response = ""
-            async for response in call_agent(
+            async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history
             ):
-                #if isinstance(response, StreamingTextContent):
-                final_response += response
+                if isinstance(response, StreamingTextContent):
+                    final_response += response.text
 
                 await post_intermediate_info(message=response,
                                              post_intermediate_message=self.state.post_intermediate_message)

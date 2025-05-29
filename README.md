@@ -64,8 +64,6 @@ Perform each of the following sections in a new shell window.
     APPLICATION_INSIGHTS_CONNECTION_STRING=
     BING_CONNECTION_NAME=
     BING_INSTANCE_NAME=
-    SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS=true
-    SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE=true
     ```
 
 1.  Create a virtual environment
@@ -118,6 +116,12 @@ Perform each of the following sections in a new shell window.
 
     ```shell
     pip install -r ./requirements.txt
+    ```
+
+1.  Create a `.env` file with the following values.
+
+    ```txt
+    services__api__api__0=http://127.0.0.1:8000
     ```
 
 1.  Run the web app

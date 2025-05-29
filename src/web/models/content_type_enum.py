@@ -7,6 +7,7 @@ class ContentTypeEnum(StrEnum):
     # EXCEPTION = auto()
     # MATPLOTLIB = auto()
     # IMAGE = auto()
+    ANNOTATION = auto()
     FILE = auto()
 
 

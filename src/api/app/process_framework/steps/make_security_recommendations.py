@@ -4,19 +4,26 @@ from typing import Any, Awaitable, Callable, ClassVar
 
 from opentelemetry import trace
 from pydantic import Field
-from semantic_kernel.contents import ChatHistory
+from semantic_kernel.contents import (AnnotationContent, ChatHistory,
+                                      ChatMessageContent, FileReferenceContent,
+                                      TextContent)
+from semantic_kernel.contents.streaming_annotation_content import \
+    StreamingAnnotationContent
+from semantic_kernel.contents.streaming_file_reference_content import \
+    StreamingFileReferenceContent
+from semantic_kernel.contents.streaming_text_content import \
+    StreamingTextContent
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 from semantic_kernel.processes.kernel_process import (
     KernelProcessStep, KernelProcessStepContext, kernel_process_step_metadata)
-from semantic_kernel.contents.streaming_annotation_content import StreamingAnnotationContent
-from semantic_kernel.contents.streaming_file_reference_content import StreamingFileReferenceContent
-from semantic_kernel.contents.streaming_text_content import StreamingTextContent
 
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
-from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
-from app.process_framework.utilities.utilities import (call_agent,
+from app.process_framework.models.cloud_service_onboarding_state import \
+    CloudServiceOnboardingState
+from app.process_framework.utilities.utilities import (invoke_agent,
+                                                       invoke_agent_stream,
                                                        post_beginning_info,
                                                        post_error,
                                                        post_intermediate_info)
@@ -42,9 +49,18 @@ tracer = trace.get_tracer(__name__)
 
 @kernel_process_step_metadata("MakeSecurityRecommendationsStep")
 class MakeSecurityRecommendationsStep(KernelProcessStep[CloudServiceOnboardingState]):
-    state: CloudServiceOnboardingState = Field( # type: ignore
+    state: CloudServiceOnboardingState = Field(  # type: ignore
         default_factory=CloudServiceOnboardingState)
 
+#     system_prompt: ClassVar[str] = """
+# You are a helpful assistant that makes security recommendations for cloud services. You will be given a cloud service name. Your job is to make security recommendations based on the provided documentation and recommendations. The recommendations should be comprehensive and actionable.
+
+# You will need to search internal security documents for security requirements. These requirements are generic and should apply to all cloud services.
+
+# You will also need to search public documents to find specific security recommendations for that service. You should use internal security recommendations to help you determine what public documentation to retrieve. The public documentation should be comprehensive and follow best practices for cloud security. Make sure and do lookups for each item in the internal security recommendations to ensure you provide relevant documentation for each item. If you cannot find documentation for a specific item, please indicate that in your response. Be sure to check and see if there are already existing Azure Policies; if so, you should retrieve those examples.
+
+# These recommendations will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the recommendations that will be used to create the policy.
+# """
     system_prompt: ClassVar[str] = """
 You are a helpful assistant that makes security recommendations for cloud services. You will be given a cloud service name, public documentation, and internal security recommendations. Your job is to make security recommendations based on the provided documentation and recommendations. The recommendations should be comprehensive and actionable. These recommendations will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the recommendations that will be used to create the policy.
 """
@@ -72,19 +88,21 @@ You are a helpful assistant that makes security recommendations for cloud servic
             )  # type: ignore
 
             final_response = ""
-            async for response in call_agent(
+            async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
                 chat_history=self.state.chat_history
             ):
-                #if isinstance(response, StreamingTextContent):
-                final_response += response
+                if isinstance(response, StreamingTextContent):
+                    final_response += response.text
+                if isinstance(response, TextContent):
+                    final_response += response.text
 
                 await post_intermediate_info(message=response,
                                              post_intermediate_message=self.state.post_intermediate_message)
 
             self.state.chat_history.add_assistant_message(final_response)  # type: ignore
 
-            logger.info(f"Final security recommendations response: {final_response}")
+            logger.info(f"Making security recommendations response: {final_response}")
 
             await context.emit_event(
                 process_event=self.OutputEvents.MakeSecurityRecommendationsComplete,

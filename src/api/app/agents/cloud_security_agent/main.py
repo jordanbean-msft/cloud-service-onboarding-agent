@@ -5,6 +5,9 @@ from azure.ai.agents.models import (BingCustomSearchTool, CodeInterpreterTool,
                                     FilePurpose, FileSearchTool, ToolSet)
 from semantic_kernel import Kernel
 from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
+from semantic_kernel.connectors.ai.prompt_execution_settings import \
+    PromptExecutionSettings
+from semantic_kernel.functions import KernelArguments
 
 from app.config import get_settings
 from app.services.dependencies import AIProjectClient
@@ -55,7 +58,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
             azure_ai_agent = AzureAIAgent(
                 client=client,
                 definition=agent,
-                kernel=kernel,
+                kernel=kernel
             )
             break
 
@@ -71,7 +74,10 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
                 # bing_grounding_tool = BingGroundingTool(connection_id=connection.id)
                 bing_custom_tool = BingCustomSearchTool(
                     connection_id=connection.id,
-                    instance_name=get_settings().bing_instance_name
+                    instance_name=get_settings().bing_instance_name,
+                    count=50,
+                    market="en-US",
+                    set_lang="en"
                 )
                 toolset.add(bing_custom_tool)
                 break
@@ -91,7 +97,7 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
         azure_ai_agent = AzureAIAgent(
             client=client,
             definition=agent_definition,
-            kernel=kernel,
+            kernel=kernel
         )
 
     return azure_ai_agent

@@ -101,6 +101,7 @@ def setup_events(process_builder,
                  write_terraform_step):
     process_builder.on_input_event("Start").send_event_to(
         target=retrieve_internal_security_recommendations,
+        # target=make_security_recommendation_step,
         parameter_name="params",
     )
 

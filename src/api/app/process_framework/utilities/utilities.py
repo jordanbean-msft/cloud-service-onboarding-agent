@@ -3,12 +3,16 @@ import logging
 from typing import Any, AsyncIterable
 
 from opentelemetry import trace
-from semantic_kernel.contents import (ChatHistory, ChatMessageContent,
+from semantic_kernel.contents import (AnnotationContent, ChatHistory,
+                                      ChatMessageContent, FileReferenceContent,
                                       FunctionCallContent,
-                                      FunctionResultContent)
-from semantic_kernel.contents.streaming_annotation_content import StreamingAnnotationContent
-from semantic_kernel.contents.streaming_file_reference_content import StreamingFileReferenceContent
-from semantic_kernel.contents.streaming_text_content import StreamingTextContent
+                                      FunctionResultContent, TextContent)
+from semantic_kernel.contents.streaming_annotation_content import \
+    StreamingAnnotationContent
+from semantic_kernel.contents.streaming_file_reference_content import \
+    StreamingFileReferenceContent
+from semantic_kernel.contents.streaming_text_content import \
+    StreamingTextContent
 
 from app.models.chat_output import ChatOutput, serialize_chat_output
 from app.models.content_type_enum import ContentTypeEnum
@@ -40,6 +44,24 @@ async def _post_intermediate_message(post_intermediate_message,
             obj = ChatOutput(
                 content_type=ContentTypeEnum.FILE,
                 content=content.file_id if content.file_id else '',
+                thread_id=thread_id,
+            )
+        elif isinstance(content, AnnotationContent):
+            obj = ChatOutput(
+                content_type=ContentTypeEnum.ANNOTATION,
+                content=content.quote if content.quote else '',
+                thread_id=thread_id,
+            )
+        elif isinstance(content, FileReferenceContent):
+            obj = ChatOutput(
+                content_type=ContentTypeEnum.FILE,
+                content=content.file_id if content.file_id else '',
+                thread_id=thread_id,
+            )
+        elif isinstance(content, TextContent):
+            obj = ChatOutput(
+                content_type=ContentTypeEnum.MARKDOWN,
+                content=content.text,
                 thread_id=thread_id,
             )
         elif isinstance(content, str):
@@ -91,8 +113,8 @@ async def print_on_intermediate_message(message: ChatMessageContent):
             logger.debug(f"{message.role}: {message.content}")
 
 
-async def call_agent(agent_name: str,
-                     chat_history: ChatHistory) -> AsyncIterable[str]:
+async def invoke_agent_stream(agent_name: str,
+                              chat_history: ChatHistory) -> AsyncIterable[Any]:
     agent_manager = get_create_agent_manager()
 
     agent = None
@@ -116,16 +138,45 @@ async def call_agent(agent_name: str,
             thread = response.thread
 
             for item in response.items:
-                if isinstance(item, StreamingTextContent):
-                    yield item.text
-                if isinstance(item, StreamingAnnotationContent):
-                    annotations.append(item)
-                elif isinstance(item, StreamingFileReferenceContent):
-                    file_references.append(item)
-                #else:
-                    #logger.warning(f"Unknown content type: {type(item)}")
+                yield item
 
-            #yield response.content.content
+            # yield response.content.content
+    except Exception as e:
+        logger.error(f"Error calling agent {agent_name}: {e}")
+        raise
+
+    logger.debug(f"Final thread ID: {thread.id if thread else 'None'}")
+
+
+async def invoke_agent(agent_name: str,
+                       chat_history: ChatHistory) -> AsyncIterable[Any]:
+    agent_manager = get_create_agent_manager()
+
+    agent = None
+    for a in agent_manager:
+        if a.name == agent_name:
+            agent = a
+            break
+
+    if not agent:
+        raise ValueError(f"{agent_name} not found.")
+
+    thread = None
+    text_content = []
+    annotations = []
+    file_references = []
+    try:
+        async for response in agent.invoke(
+            thread=thread,
+            messages=chat_history.messages,  # type: ignore
+            on_intermediate_message=print_on_intermediate_message,
+            parallel_tool_calls=False
+        ):
+            thread = response.thread
+
+            for item in response.items:
+                yield item
+
     except Exception as e:
         logger.error(f"Error calling agent {agent_name}: {e}")
         raise
@@ -133,8 +184,9 @@ async def call_agent(agent_name: str,
     logger.debug(f"Final thread ID: {thread.id if thread else 'None'}")
 
 __all__ = [
-    "call_agent",
+    "invoke_agent_stream",
     "post_beginning_info",
     "post_intermediate_info",
     "post_error",
+    "invoke_agent",
 ]

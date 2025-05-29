@@ -7,7 +7,7 @@ from azure.identity.aio import DefaultAzureCredential
 from fastapi import Depends
 from openai import AsyncAzureOpenAI
 from semantic_kernel import Kernel
-from semantic_kernel.agents import AzureAIAgent
+from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
 from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
 
 from app.config import get_settings
