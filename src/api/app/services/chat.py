@@ -8,8 +8,9 @@ from semantic_kernel.processes.kernel_process import KernelProcessEvent
 from semantic_kernel.processes.local_runtime.local_kernel_process import start
 
 from app.models.chat_input import ChatInput
-from app.models.chat_output import ChatOutput, serialize_chat_output
+from app.models.chat_output import ChatOutput
 from app.models.content_type_enum import ContentTypeEnum
+from app.models.streaming_text_output import StreamingTextOutput, serialize_streaming_text_output
 from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.processes.cloud_service_onboarding_process import \
@@ -50,12 +51,12 @@ async def build_chat_results(chat_input: ChatInput):
             logger.error(error_message)
 
             await post_intermediate_message(json.dumps(
-                obj=ChatOutput(
+                obj=StreamingTextOutput(
                     content_type=ContentTypeEnum.MARKDOWN,
-                    content=error_message,
+                    text=error_message,
                     thread_id=chat_input.thread_id,
                 ),
-                default=serialize_chat_output,
+                default=serialize_streaming_text_output,
             ) + "\n")
 
             # if cloud_security_agent is not None:

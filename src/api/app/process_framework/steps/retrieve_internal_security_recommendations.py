@@ -17,7 +17,7 @@ from app.process_framework.models.cloud_service_onboarding_parameters import \
     CloudServiceOnboardingParameters
 from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (invoke_agent_stream,
-                                                       post_beginning_info,
+                                                       post_beginning_info, post_end_info,
                                                        post_error,
                                                        post_intermediate_info)
 
@@ -35,7 +35,7 @@ class RetrieveInternalSecurityRecommendationsStep(KernelProcessStep[CloudService
     state: CloudServiceOnboardingState = Field(  # type: ignore
         default_factory=CloudServiceOnboardingState)
 
-    system_prompt: ClassVar[str] = """
+    additional_instructions: ClassVar[str] = """
 You are a helpful assistant that retrieves internal security recommendations for cloud services. You will be given a cloud service name. Your job is to retrieve any relevant internal security recommendations for the service. Make sure and follow links to find additional information. The internal security recommendations should be comprehensive and follow best practices for cloud security. These recommendations will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the internal security recommendations that will be used to create the policy. The recommendations should be actionable and include specifics, not links to other documentation.
 """
 
@@ -53,22 +53,36 @@ You are a helpful assistant that retrieves internal security recommendations for
                                   message=f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}...\n",
                                   post_intermediate_message=self.state.post_intermediate_message)
         try:
-            if self.state.chat_history is None:
-                self.state.chat_history = ChatHistory(system_message=self.system_prompt)
+            #self.state.chat_history = ChatHistory(system_message=self.additional_instructions)
 
-            self.state.chat_history.add_user_message(
+            self.state.chat_history.add_user_message( # type: ignore
                 f"Retrieve internal security recommendations for {params.cloud_service_name}."
             )  # type: ignore
 
             final_response = ""
+            annotations = []
+            file_references = []
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
-                chat_history=self.state.chat_history
+                additional_instructions=self.additional_instructions,
+                chat_history=self.state.chat_history # type: ignore
             ):
                 if isinstance(response, StreamingTextContent):
                     final_response += response.text
 
-                await post_intermediate_info(message=response,
+                    await post_intermediate_info(message=response,
+                                                 post_intermediate_message=self.state.post_intermediate_message)
+                elif isinstance(response, StreamingAnnotationContent):
+                    annotations.append(response)
+                elif isinstance(response, StreamingFileReferenceContent):
+                    file_references.append(response)
+
+            for annotation in annotations:
+                await post_intermediate_info(message=annotation,
+                                            post_intermediate_message=self.state.post_intermediate_message)
+
+            for file_reference in file_references:
+                await post_intermediate_info(message=file_reference,
                                              post_intermediate_message=self.state.post_intermediate_message)
 
             self.state.chat_history.add_assistant_message(final_response)  # type: ignore
@@ -86,6 +100,8 @@ You are a helpful assistant that retrieves internal security recommendations for
                     terraform_code=params.terraform_code,
                 )
             )
+
+            await post_end_info(post_intermediate_message=self.state.post_intermediate_message)
         except Exception as e:
             await post_error(title="Error retrieving internal security recommendations",
                              exception=e,

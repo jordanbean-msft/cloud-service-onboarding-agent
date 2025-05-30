@@ -31,5 +31,9 @@ def output_formatter(content):
 
     return content
 
+def replace_annotation_placeholder(original, start, end, replacement):
+    if not (0 <= start <= end <= len(original)):
+        raise ValueError("Invalid start or end index")
+    return f"{original[:start]}({replacement}){original[end:]}"
 
-__all__ = ["output_formatter",]
+__all__ = ["output_formatter", "replace_annotation_placeholder"]

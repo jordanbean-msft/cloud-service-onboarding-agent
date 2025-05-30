@@ -21,7 +21,7 @@ from app.process_framework.models.cloud_service_onboarding_parameters import \
 from app.process_framework.models.cloud_service_onboarding_state import \
     CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (invoke_agent_stream,
-                                                       post_beginning_info,
+                                                       post_beginning_info, post_end_info,
                                                        post_error,
                                                        post_intermediate_info)
 
@@ -39,7 +39,7 @@ class RetrievePublicDocumentationStep(KernelProcessStep[CloudServiceOnboardingSt
     state: CloudServiceOnboardingState = Field(  # type: ignore
         default_factory=CloudServiceOnboardingState)
 
-    system_prompt: ClassVar[str] = """
+    additional_instructions: ClassVar[str] = """
 You are a helpful assistant that retrieves public security documentation for cloud services. You will be given a cloud service name. Your job is to find relevant security recommendations for the service you are provided. Do not summarize the recommendations, just provide the actual text of the public documentation that will be used to create the policy. You will be given a list of internal security recommendations that will help you determine what public documentation to retrieve. The public documentation should be comprehensive and follow best practices for cloud security. The public documentation will be used to make an Azure Policy. Do not write the Azure Policy itself, just provide the public documentation that will be used to create the policy. Make sure and do lookups for each item in the internal security recommendations to ensure you provide relevant documentation for each item. If you cannot find documentation for a specific item, please indicate that in your response. Be sure to check and see if there are already existing Azure Policies, you should provide them.
 """
 
@@ -58,22 +58,22 @@ You are a helpful assistant that retrieves public security documentation for clo
                                   post_intermediate_message=self.state.post_intermediate_message)
 
         try:
-            if self.state.chat_history is None:
-                self.state.chat_history = ChatHistory(system_message=self.system_prompt)
+            #self.state.chat_history = ChatHistory(system_message=self.additional_instructions)
 
-            self.state.chat_history.add_user_message(
+            self.state.chat_history.add_user_message( # type: ignore
                 f"Retrieve public security documentation for {params.cloud_service_name}. The internal security recommendations are: {params.internal_security_recommendations}."
             )  # type: ignore
 
             final_response = ""
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
-                chat_history=self.state.chat_history,
+                chat_history=self.state.chat_history, # type: ignore
+                additional_instructions=self.additional_instructions,
             ):
                 if isinstance(response, StreamingTextContent):
                     final_response += response.text
 
-                await post_intermediate_info(message=response,
+                    await post_intermediate_info(message=response,
                                              post_intermediate_message=self.state.post_intermediate_message)
 
             self.state.chat_history.add_assistant_message(final_response)  # type: ignore
@@ -91,6 +91,8 @@ You are a helpful assistant that retrieves public security documentation for clo
                     terraform_code=params.terraform_code,
                 )
             )
+
+            await post_end_info(post_intermediate_message=self.state.post_intermediate_message)
         except Exception as e:
             await post_error(title="Error retrieving public documentation",
                              exception=e,
