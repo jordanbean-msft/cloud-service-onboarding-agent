@@ -5,6 +5,8 @@ from fastapi import APIRouter
 from fastapi.responses import Response, StreamingResponse
 from opentelemetry import trace
 
+from app.models.chat_get_file_name import ChatGetFileNameInput
+from app.models.chat_get_file_name_output import ChatGetFileNameOutput
 from app.models.chat_get_image import ChatGetImageInput
 from app.models.chat_get_image_contents import ChatGetImageContents
 from app.models.chat_get_thread import ChatGetThreadInput
@@ -71,6 +73,19 @@ async def get_image(thread_input: ChatGetImageInput,
     image_data = b"".join(chunks)
 
     return Response(content=image_data, media_type="image/png")
+
+@tracer.start_as_current_span(name="get_file_name")
+@router.get("/get_file_name")
+async def get_file_name(thread_input: ChatGetFileNameInput,
+                        azure_ai_client: AIProjectClientDependency):
+    file = await azure_ai_client.agents.files.get(thread_input.file_id)
+    if not file:
+        raise RuntimeError(f"No file found for ID '{thread_input.file_id}'.")
+
+    return ChatGetFileNameOutput(
+        file_name=file.filename,
+        file_id=file.id
+    )
 
 
 @tracer.start_as_current_span(name="chat")

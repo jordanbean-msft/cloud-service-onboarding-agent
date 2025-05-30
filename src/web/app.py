@@ -4,8 +4,7 @@ from typing import List, Tuple
 from pydantic import BaseModel
 import streamlit as st
 from semantic_kernel.contents import (ChatMessageContent, ImageContent,
-                                      TextContent, StreamingAnnotationContent,
-                                      StreamingFileReferenceContent, StreamingTextContent,)
+                                      TextContent,)
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.utils.author_role import AuthorRole
 
@@ -16,7 +15,7 @@ from models.streaming_text_output import deserialize_streaming_text_output
 from models.content_type_enum import ContentTypeEnum
 from models.streaming_annotation_file_output import StreamingAnnotationFileOutput
 from models.streaming_annotation_url_output import StreamingAnnotationUrlOutput
-from services.chat import chat, create_thread, get_image
+from services.chat import chat, create_thread, get_file_name
 from utilities import replace_annotation_placeholder
 
 
@@ -91,10 +90,13 @@ def render_response(response):
                     end_index=output.end_index,
                 )
 
+                # Get the file name from the file ID
+                file_name = get_file_name(file_id=streaming_annotation_content.file_id)
+
                 individual_stream_content = replace_annotation_placeholder(original=individual_stream_content,
                                                                            start=streaming_annotation_content.start_index,
                                                                            end=streaming_annotation_content.end_index,
-                                                                           replacement=streaming_annotation_content.file_id)
+                                                                           replacement=f"([{file_name}]())")
 
             case ContentTypeEnum.ANNOTATION_URL:
                 output = deserialize_streaming_annotation_url_output(json.loads(chunk))

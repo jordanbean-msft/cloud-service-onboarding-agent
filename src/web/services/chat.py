@@ -1,7 +1,9 @@
+import json
 import os
 
 import requests
 
+from models.chat_get_file_name_output import ChatGetFileNameOutput
 from models.chat_get_image import ChatGetImageInput
 from models.chat_get_image_contents import ChatGetImageContents
 from models.chat_get_thread import ChatGetThreadInput
@@ -69,5 +71,20 @@ def get_image_contents(thread_id):
 
     return image_contents.json()
 
+def get_file_name(file_id):
+    get_file_name_input = ChatGetImageInput(file_id=file_id)
 
-__all__ = ["chat", "get_image", "get_thread", "get_image_contents", "create_thread",]
+    file_name_response = requests.get(
+        url=f"{api_base_url}/v1/get_file_name",
+        json=get_file_name_input.model_dump(mode="json"),
+        timeout=60
+    )
+
+    if file_name_response.ok:
+        file_name_output = ChatGetFileNameOutput.model_validate(file_name_response.json())
+        return file_name_output.file_name
+
+    return None
+
+
+__all__ = ["chat", "get_image", "get_thread", "get_image_contents", "create_thread", "get_file_name"]
