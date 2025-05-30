@@ -108,8 +108,10 @@ def setup_events(process_builder,
     retrieve_internal_security_recommendations.on_event(
         RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsComplete
     ).send_event_to(
-        target=retrieve_public_documentation_step,
-        function_name=RetrievePublicDocumentationStep.Functions.RetrievePublicDocumentation,
+        #target=retrieve_public_documentation_step,
+        target=make_security_recommendation_step,
+        #function_name=RetrievePublicDocumentationStep.Functions.RetrievePublicDocumentation,
+        function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations,
         parameter_name="params"
     )
 
@@ -117,17 +119,17 @@ def setup_events(process_builder,
         RetrieveInternalSecurityRecommendationsStep.OutputEvents.RetrieveInternalSecurityRecommendationsError
     ).stop_process()
 
-    retrieve_public_documentation_step.on_event(
-        RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationComplete
-    ).send_event_to(
-        target=make_security_recommendation_step,
-        function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations,
-        parameter_name="params"
-    )
+    # retrieve_public_documentation_step.on_event(
+    #     RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationComplete
+    # ).send_event_to(
+    #     target=make_security_recommendation_step,
+    #     function_name=MakeSecurityRecommendationsStep.Functions.MakeSecurityRecommendations,
+    #     parameter_name="params"
+    # )
 
-    retrieve_public_documentation_step.on_event(
-        RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationError
-    ).stop_process()
+    # retrieve_public_documentation_step.on_event(
+    #     RetrievePublicDocumentationStep.OutputEvents.RetrievePublicDocumentationError
+    # ).stop_process()
 
     make_security_recommendation_step.on_event(
         MakeSecurityRecommendationsStep.OutputEvents.MakeSecurityRecommendationsComplete

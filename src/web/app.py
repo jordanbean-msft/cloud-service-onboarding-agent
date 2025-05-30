@@ -1,14 +1,23 @@
 import json
+from typing import List, Tuple
 
+from pydantic import BaseModel
 import streamlit as st
 from semantic_kernel.contents import (ChatMessageContent, ImageContent,
-                                      TextContent)
+                                      TextContent, StreamingAnnotationContent,
+                                      StreamingFileReferenceContent, StreamingTextContent,)
 from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.contents.utils.author_role import AuthorRole
 
 from models.chat_output import deserialize_chat_output
+from models.streaming_annotation_file_output import deserialize_streaming_annotation_file_output
+from models.streaming_annotation_url_output import deserialize_streaming_annotation_url_output
+from models.streaming_text_output import deserialize_streaming_text_output
 from models.content_type_enum import ContentTypeEnum
+from models.streaming_annotation_file_output import StreamingAnnotationFileOutput
+from models.streaming_annotation_url_output import StreamingAnnotationUrlOutput
 from services.chat import chat, create_thread, get_image
+from utilities import replace_annotation_placeholder
 
 
 def _handle_user_interaction():
@@ -42,22 +51,77 @@ if "thread_id" not in st.session_state:
 
 
 def render_response(response):
-    full_delta_content = ""
+    full_stream_content = ""
+    individual_stream_content = ""
+
+    class QuoteUrls(BaseModel):
+        quote: str = ""
+        url: str = ""
+
+    quote_urls: List[QuoteUrls] = []  # List to store URL annotations
+
     images = []
     for chunk in response:
         delta = deserialize_chat_output(json.loads(chunk))
 
-        if delta and delta.content:
-            if delta.content_type == ContentTypeEnum.MARKDOWN:
-                full_delta_content += delta.content
+        match delta.content_type:
+            case ContentTypeEnum.MARKDOWN:
+                output = deserialize_streaming_text_output(json.loads(chunk))
+                full_stream_content += output.text
+                individual_stream_content += output.text
 
-                st.markdown(full_delta_content)
-            elif delta.content_type == ContentTypeEnum.FILE:
-                image = get_image(file_id=delta.content)
-                st.image(image=image, use_container_width=True)
-                images.append(image)
+                st.markdown(full_stream_content)
+            # case ContentTypeEnum.FILE:
+            #     output = deserialize_streaming_annotation_file_output(json.loads(chunk))
+            #     streaming_file_content = StreamingFileReferenceContent(file_id=output.file_id)
+            #     file_id = streaming_file_content.file_id
+            #     image = get_image(file_id=file_id)
+            #     st.image(image=image, use_container_width=True)
+            #     images.append(image)
 
-    st.session_state.messages.add_assistant_message(full_delta_content)
+            case ContentTypeEnum.ANNOTATION_FILE:
+                output = deserialize_streaming_annotation_file_output(json.loads(chunk))
+
+                streaming_annotation_content = StreamingAnnotationFileOutput(
+                    content_type=ContentTypeEnum.ANNOTATION_FILE,
+                    thread_id=st.session_state.thread_id,
+                    file_id=output.file_id,
+                    quote=output.quote,
+                    start_index=output.start_index,
+                    end_index=output.end_index,
+                )
+
+                individual_stream_content = replace_annotation_placeholder(original=individual_stream_content,
+                                                                           start=streaming_annotation_content.start_index,
+                                                                           end=streaming_annotation_content.end_index,
+                                                                           replacement=streaming_annotation_content.file_id)
+
+            case ContentTypeEnum.ANNOTATION_URL:
+                output = deserialize_streaming_annotation_url_output(json.loads(chunk))
+
+                streaming_annotation_content = StreamingAnnotationUrlOutput(
+                    content_type=ContentTypeEnum.ANNOTATION_URL,
+                    thread_id=st.session_state.thread_id,
+                    url=output.url,
+                    title=output.title,
+                    start_index=output.start_index,
+                    end_index=output.end_index,
+                )
+
+                quote = individual_stream_content[streaming_annotation_content.start_index:streaming_annotation_content.end_index]
+
+                quote_urls.append(QuoteUrls(quote=quote, # TODO: replace this with the quote from StreamingAnnotationUrlOutput if it gets added
+                                            url=f"([{streaming_annotation_content.title}]({streaming_annotation_content.url}))"))
+
+            case ContentTypeEnum.SENTINEL:
+                st.markdown(full_stream_content)
+
+                updated_stream_content = individual_stream_content
+                for quote_url in quote_urls:
+                    updated_stream_content = updated_stream_content.replace(quote_url.quote, quote_url.url)
+
+                st.session_state.messages.add_assistant_message(updated_stream_content)
+                individual_stream_content = ""
 
     for image in images:
         content = ChatMessageContent(
