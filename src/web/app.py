@@ -52,12 +52,20 @@ if "thread_id" not in st.session_state:
 def render_response(response):
     full_stream_content = ""
     individual_stream_content = ""
+    consolidated_stream_content = []
+    #is_end_of_individual_stream_content = False
+    have_received_either_url_or_file_annotation = False
 
     class QuoteUrls(BaseModel):
         quote: str = ""
         url: str = ""
 
+    class FileNames(BaseModel):
+        quote: str = ""
+        file_name: str = ""
+
     quote_urls: List[QuoteUrls] = []  # List to store URL annotations
+    file_names: List[FileNames] = []  # List to store file name annotations
 
     images = []
     for chunk in response:
@@ -68,6 +76,11 @@ def render_response(response):
                 output = deserialize_streaming_text_output(json.loads(chunk))
                 full_stream_content += output.text
                 individual_stream_content += output.text
+
+                if have_received_either_url_or_file_annotation:
+                    consolidated_stream_content.append(individual_stream_content)
+                    individual_stream_content = ""
+                    have_received_either_url_or_file_annotation = False
 
                 st.markdown(full_stream_content)
             # case ContentTypeEnum.FILE:
@@ -92,11 +105,14 @@ def render_response(response):
 
                 # Get the file name from the file ID
                 file_name = get_file_name(file_id=streaming_annotation_content.file_id)
+                file_names.append(
+                    FileNames(
+                        quote=streaming_annotation_content.quote,
+                        file_name=file_name # type: ignore
+                    )
+                )
 
-                individual_stream_content = replace_annotation_placeholder(original=individual_stream_content,
-                                                                           start=streaming_annotation_content.start_index,
-                                                                           end=streaming_annotation_content.end_index,
-                                                                           replacement=f"([{file_name}]())")
+                have_received_either_url_or_file_annotation = True
 
             case ContentTypeEnum.ANNOTATION_URL:
                 output = deserialize_streaming_annotation_url_output(json.loads(chunk))
@@ -115,12 +131,26 @@ def render_response(response):
                 quote_urls.append(QuoteUrls(quote=quote, # TODO: replace this with the quote from StreamingAnnotationUrlOutput if it gets added
                                             url=f"([{streaming_annotation_content.title}]({streaming_annotation_content.url}))"))
 
+                have_received_either_url_or_file_annotation = True
+
             case ContentTypeEnum.SENTINEL:
                 st.markdown(full_stream_content)
 
-                updated_stream_content = individual_stream_content
+                updated_stream_content = full_stream_content
+
+                updated_stream_content = ""
+
+                for content in consolidated_stream_content:
+                    updated_stream_content += content
+
                 for quote_url in quote_urls:
                     updated_stream_content = updated_stream_content.replace(quote_url.quote, quote_url.url)
+
+                for file_name in file_names:
+                    updated_stream_content = updated_stream_content.replace(
+                        file_name.quote,
+                        f"([{file_name.file_name}]())"
+                    )
 
                 st.session_state.messages.add_assistant_message(updated_stream_content)
                 individual_stream_content = ""
