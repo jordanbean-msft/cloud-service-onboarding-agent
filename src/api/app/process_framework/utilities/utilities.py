@@ -15,6 +15,7 @@ from semantic_kernel.contents.streaming_file_reference_content import \
     StreamingFileReferenceContent
 from semantic_kernel.contents.streaming_text_content import \
     StreamingTextContent
+from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgentThread
 
 from app.models.streaming_annotation_file_output import StreamingAnnotationFileOutput, serialize_streaming_annotation_file_output
 from app.models.streaming_annotation_url_output import StreamingAnnotationUrlOutput, serialize_streaming_annotation_url_output
@@ -133,7 +134,8 @@ async def print_on_intermediate_message(message: ChatMessageContent):
 
 
 async def invoke_agent_stream(agent_name: str,
-                              chat_history: ChatHistory,
+                              thread: AzureAIAgentThread,
+                              message: str,
                               additional_instructions: str = "") -> AsyncIterable[Any]:
     agent_manager = get_create_agent_manager()
 
@@ -146,15 +148,14 @@ async def invoke_agent_stream(agent_name: str,
     if not agent:
         raise ValueError(f"{agent_name} not found.")
 
-    thread = None
     try:
         async for response in agent.invoke_stream(
             thread=thread,
-            messages=chat_history.messages,  # type: ignore
+            messages=message,  # type: ignore
             on_intermediate_message=print_on_intermediate_message,
             additional_instructions=additional_instructions,
         ):
-            thread = response.thread
+            #thread = response.thread
 
             for item in response.items:
                 yield item
@@ -164,41 +165,6 @@ async def invoke_agent_stream(agent_name: str,
 
     logger.debug(f"Final thread ID: {thread.id if thread else 'None'}")
 
-
-async def invoke_agent(agent_name: str,
-                       chat_history: ChatHistory) -> AsyncIterable[Any]:
-    agent_manager = get_create_agent_manager()
-
-    agent = None
-    for a in agent_manager:
-        if a.name == agent_name:
-            agent = a
-            break
-
-    if not agent:
-        raise ValueError(f"{agent_name} not found.")
-
-    thread = None
-    text_content = []
-    annotations = []
-    file_references = []
-    try:
-        async for response in agent.invoke(
-            thread=thread,
-            messages=chat_history.messages,  # type: ignore
-            on_intermediate_message=print_on_intermediate_message,
-            parallel_tool_calls=False
-        ):
-            thread = response.thread
-
-            for item in response.items:
-                yield item
-
-    except Exception as e:
-        logger.error(f"Error calling agent {agent_name}: {e}")
-        raise
-
-    logger.debug(f"Final thread ID: {thread.id if thread else 'None'}")
 
 __all__ = [
     "invoke_agent_stream",
@@ -206,5 +172,4 @@ __all__ = [
     "post_intermediate_info",
     "post_end_info",
     "post_error",
-    "invoke_agent",
 ]

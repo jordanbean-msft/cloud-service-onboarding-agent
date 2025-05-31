@@ -1,12 +1,17 @@
 stateDiagram-v2
+direction LR
     [*] -->  request_for_new_cloud_service_onboarding
     request_for_new_cloud_service_onboarding --> API
     API --> cloud_service_onboarding_process
     state cloud_service_onboarding_process {
-        [*] --> retrieve_public_documentation
-
-        retrieve_public_documentation --> retrieve_security_documentation
-        retrieve_security_documentation --> make_security_recommendations
+        [*] --> retrieve_internal_security_documentation
+        state retrieve_internal_security_documentation {
+            [*] --> file_search: Read internal security documentation files
+        }
+        retrieve_internal_security_documentation --> make_security_recommendations
+        state make_security_recommendations {
+            [*] --> bing_custom_search: Use Bing Custom Search to find relevant security recommendations for cloud service
+        }
         make_security_recommendations --> build_azure_policy
         build_azure_policy --> write_terraform
     }

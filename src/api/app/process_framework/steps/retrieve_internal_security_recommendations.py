@@ -13,8 +13,9 @@ from semantic_kernel.contents.streaming_annotation_content import StreamingAnnot
 from semantic_kernel.contents.streaming_file_reference_content import StreamingFileReferenceContent
 from semantic_kernel.contents.streaming_text_content import StreamingTextContent
 
-from app.process_framework.models.cloud_service_onboarding_parameters import \
-    CloudServiceOnboardingParameters
+from app.process_framework.models.make_security_recommendations_step_parameters import MakeSecurityRecommendationsStepParameters
+from app.process_framework.models.retrieve_internal_security_recommendations_step_parameters import \
+    RetrieveInternalSecurityRecommendationsStepParameters
 from app.process_framework.models.cloud_service_onboarding_state import CloudServiceOnboardingState
 from app.process_framework.utilities.utilities import (invoke_agent_stream,
                                                        post_beginning_info, post_end_info,
@@ -23,11 +24,6 @@ from app.process_framework.utilities.utilities import (invoke_agent_stream,
 
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
-
-
-# class RetrieveInternalSecurityRecommendationsState(KernelBaseModel):
-#     chat_history: ChatHistory | None = None
-#     post_intermediate_message: Callable[[Any], Awaitable[None]] | None = None
 
 
 @kernel_process_step_metadata("RetrieveInternalSecurityRecommendationsStep")
@@ -48,56 +44,31 @@ You are a helpful assistant that retrieves internal security recommendations for
 
     @tracer.start_as_current_span(Functions.RetrieveInternalSecurityRecommendations)
     @kernel_function(name=Functions.RetrieveInternalSecurityRecommendations)
-    async def retrieve_internal_security_recommendations(self, context: KernelProcessStepContext, params: CloudServiceOnboardingParameters):
+    async def retrieve_internal_security_recommendations(self, context: KernelProcessStepContext, params: RetrieveInternalSecurityRecommendationsStepParameters):
         await post_beginning_info(title="Retrieve Internal Security Recommendations",
                                   message=f"Retrieving internal security recommendations for cloud service: {params.cloud_service_name}...\n",
                                   post_intermediate_message=self.state.post_intermediate_message)
         try:
-            #self.state.chat_history = ChatHistory(system_message=self.additional_instructions)
-
-            self.state.chat_history.add_user_message( # type: ignore
-                f"Retrieve internal security recommendations for {params.cloud_service_name}."
-            )  # type: ignore
-
+            # ChatHistory is no longer used
             final_response = ""
-            annotations = []
-            file_references = []
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
-                additional_instructions=self.additional_instructions,
-                chat_history=self.state.chat_history # type: ignore
+                thread=self.state.thread, # type: ignore
+                message=f"Retrieve internal security recommendations for {params.cloud_service_name}.",
+                additional_instructions=self.additional_instructions
             ):
                 if isinstance(response, StreamingTextContent):
                     final_response += response.text
 
-                    await post_intermediate_info(message=response,
-                                                 post_intermediate_message=self.state.post_intermediate_message)
-                elif isinstance(response, StreamingAnnotationContent):
-                    annotations.append(response)
-                elif isinstance(response, StreamingFileReferenceContent):
-                    file_references.append(response)
-
-            for annotation in annotations:
-                await post_intermediate_info(message=annotation,
+                await post_intermediate_info(message=response,
                                             post_intermediate_message=self.state.post_intermediate_message)
 
-            for file_reference in file_references:
-                await post_intermediate_info(message=file_reference,
-                                             post_intermediate_message=self.state.post_intermediate_message)
-
-            self.state.chat_history.add_assistant_message(final_response)  # type: ignore
-
-            logger.info(f"Final internal security recommendations response: {final_response}")
+            logger.debug(f"Final internal security recommendations response: {final_response}")
 
             await context.emit_event(
                 process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsComplete,
-                data=CloudServiceOnboardingParameters(
-                    cloud_service_name=params.cloud_service_name,
-                    public_documentation=params.public_documentation,
-                    internal_security_recommendations=final_response,
-                    security_recommendations=params.security_recommendations,
-                    azure_policy=params.azure_policy,
-                    terraform_code=params.terraform_code,
+                data=MakeSecurityRecommendationsStepParameters(
+                    cloud_service_name=params.cloud_service_name
                 )
             )
 
@@ -109,14 +80,9 @@ You are a helpful assistant that retrieves internal security recommendations for
 
             await context.emit_event(
                 process_event=self.OutputEvents.RetrieveInternalSecurityRecommendationsError,
-                data=CloudServiceOnboardingParameters(
+                data=RetrieveInternalSecurityRecommendationsStepParameters(
                     cloud_service_name=params.cloud_service_name,
-                    public_documentation=params.public_documentation,
-                    internal_security_recommendations=params.internal_security_recommendations,
-                    security_recommendations=params.security_recommendations,
-                    azure_policy=params.azure_policy,
-                    terraform_code=params.terraform_code,
-                    error_message=str(e),
+                    error_message=str(e)
                 )
             )
 
