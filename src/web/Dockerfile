@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+RUN adduser --disabled-password --gecos '' --uid 1000 myuser
 
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -9,9 +9,15 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY . .
+WORKDIR /app
 
-RUN pip3 install -r requirements.txt
+COPY requirements.txt /app/
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . /app/
+
+RUN chown -R myuser:myuser /app
 
 EXPOSE 8501
 
