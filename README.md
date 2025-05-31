@@ -34,10 +34,20 @@ stateDiagram-v2
 
 - Azure Container Apps
 - Azure AI Foundry Service
-  - OpenAI model (gpt-4o)
-  - `Azure AI User` RBAC role
+    - Make sure this is an **Foundry project**, it must have a `project endpoint`.
+        - https://learn.microsoft.com/en-us/azure/ai-foundry/what-is-azure-ai-foundry#project-types
+    - OpenAI model (gpt-4o) deployed to this resource
+        - https://learn.microsoft.com/en-us/azure/ai-foundry/model-inference/how-to/create-model-deployments?context=%2Fazure%2Fai-foundry%2Fcontext%2Fcontext&pivots=ai-foundry-portal
+  - `Azure AI User` RBAC role (the code expects to use the `DefaultAzureCredential` which requires this role)
 - Bing Custom Search
+    - Configure this resource to only search the Azure public documentation
+        - https://learn.microsoft.com/en-us/bing/search-apis/bing-custom-search/how-to/define-your-custom-view
+        - Use this URL as the `Allowed domains`->`Web Address`: `https://learn.microsoft.com/en-us/azure/`. Make sure and set `Include subpages` to `Yes`.
+    - Link it to your AI Foundry
+        - https://learn.microsoft.com/en-us/azure/ai-services/agents/how-to/tools/bing-custom-search-samples?pivots=portal
 - App Insights
+    - Link it to your AI Foundry
+        - https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/monitor-applications
 - Log Analytics
 - Managed Identity
 - Optional services for Bring-Your-Own model
@@ -172,5 +182,22 @@ You can find the numerical UID & GID needed to access the `~/.azure` directory b
     ```shell
     docker compose up --build
     ```
+
+### Additional logging
+
+If you want additional logging to show up in AI Foundry and App Insights, set these environment variables in whichever environment you are running in.
+
+```txt
+SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS=true
+export SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS
+SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE=true
+export SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE
+AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true
+export AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED
+AZURE_SDK_TRACING_IMPLEMENTATION=opentelemetry
+export AZURE_SDK_TRACING_IMPLEMENTATION
+```
+
+- For local process, you can set these in the `.venv/bin/activate` file to have them set automatically when you activate the virtual environment.
 
 ## Links

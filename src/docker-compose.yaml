@@ -11,6 +11,10 @@ services:
         environment:
             - "IDENTITY_ENDPOINT=http://azclicredsproxy:8080/token"
             - "IMDS_ENDPOINT=dummy_required_value"
+            - "SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS=true"
+            - "SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE=true"
+            - "AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true"
+            - "AZURE_SDK_TRACING_IMPLEMENTATION=opentelemetry"
     frontend:
         build:
             context: ./web
@@ -25,6 +29,10 @@ services:
             - "services__api__api__0=http://backend:8000"
             - "IDENTITY_ENDPOINT=http://azclicredsproxy:8080/token"
             - "IMDS_ENDPOINT=dummy_required_value"
+            - "SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS=true"
+            - "SEMANTICKERNEL_EXPERIMENTAL_GENAI_ENABLE_OTEL_DIAGNOSTICS_SENSITIVE=true"
+            - "AZURE_TRACING_GEN_AI_CONTENT_RECORDING_ENABLED=true"
+            - "AZURE_SDK_TRACING_IMPLEMENTATION=opentelemetry"
     azclicredsproxy:
         image: workleap/azure-cli-credentials-proxy:latest
         ports:
