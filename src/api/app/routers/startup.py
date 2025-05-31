@@ -1,10 +1,14 @@
 import logging
 
-import aiohttp
 from fastapi import APIRouter, Response
 from opentelemetry import trace
+from semantic_kernel import Kernel
+from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
+from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
+from semantic_kernel.contents import ChatHistory
 
-from ..config import get_settings
+from app.config.config import get_settings
+from app.services.dependencies import get_create_async_azure_ai_client
 
 tracer = trace.get_tracer(__name__)
 
@@ -29,7 +33,7 @@ async def startup_probe(response: Response):
             response.status_code = 503
             break
 
-    return_value["status"] = response.status_code
+    return_value["status"] = response.status_code # type: ignore
 
     logger.info(return_value)
 
@@ -38,36 +42,25 @@ async def startup_probe(response: Response):
 
 @tracer.start_as_current_span(name="check_azure_openai")
 async def check_azure_openai():
-    headers = {
-        "Content-Type": "application/json",
-        "api-key": get_settings().azure_openai_api_key,
-    }
-
-    body = {
-        "messages": [
-            {"role": "system", "content": "You are a helpful assistant"},
-            {"role": "user", "content": "Hello"},
-        ]
-    }
-    async with aiohttp.ClientSession() as session:
-        azure_openai_status = await session.post(
-            url=(
-                f"{get_settings().azure_openai_endpoint}openai/deployments/"
-                f"{get_settings().azure_openai_chat_deployment_name}/chat/completions?"
-                f"api-version={get_settings().azure_openai_api_version}"
-            ),
-            json=body,
-            headers=headers,
+    status_dict = {}
+    try:
+        chat_completion_service = AzureChatCompletion(
+            async_client=await get_create_async_azure_ai_client(),
+            deployment_name=get_settings().azure_openai_model_deployment_name,
         )
 
-        status_dict = {}
+        chat_history = ChatHistory()
+        chat_history.add_user_message("Hello, how are you?")
 
-        if azure_openai_status.status == 200:
-            status_dict = {"status": 200}
-        else:
-            status_dict = {
-                "status": 503,
-                "error": f"Error: {azure_openai_status.status} - {azure_openai_status.reason}",
-            }
+        response = await chat_completion_service.get_chat_message_content(
+            chat_history=chat_history,
+            settings=OpenAIChatPromptExecutionSettings()
+        )
+
+        status_dict = {"status": 200}
+    except Exception as e:
+        logger.error(f"Error occurred while checking connection to Azure OpenAI: {e}")
+        status_dict = {"status": 503, "error": str(e)}
+        return status_dict
 
     return status_dict
