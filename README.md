@@ -153,6 +153,11 @@ Perform each of the following sections in a new shell window.
 
 1.  Create a `.env` file in the `src` directory with the following content. The UID & GID are the user ID and group ID of the user that will run the `azclicredsproxy` container. These are needed because the `azclicredsproxy` needs to be able to access the Azure CLI credentials stored in the `~/.azure` directory. If you are running `docker` from Linux, you don't need the `DISTRONAME` parameter.
 
+You can find the numerical UID & GID needed to access the `~/.azure` directory by running the following command
+    ```shell
+    stat -c "UID: %u, GID: %g" ~/.azure
+    ```
+
     ```txt
     UID=
     GID=
