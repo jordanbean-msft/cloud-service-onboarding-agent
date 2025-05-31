@@ -1,6 +1,6 @@
 # cloud-service-onboarding-agent
 
-![architecture](./.img/architecture.png)
+![architecture](./.img/architecture.drawio.png)
 
 ## Cloud Service Onboarding Agent process
 ```mermaid
@@ -32,14 +32,17 @@ stateDiagram-v2
 
 ## Azure Resources needed
 
+- Azure Container Apps
 - Azure AI Foundry Service
   - OpenAI model (gpt-4o)
-  - Grounding with Bing
-  - Vector Store
-  - AI Agent service
-- Azure App Service
-- Azure Storage Account
-
+  - `Azure AI User` RBAC role
+- Bing Custom Search
+- App Insights
+- Log Analytics
+- Managed Identity
+- Optional services for Bring-Your-Own model
+    - Azure Storage Account
+    - Azure Cosmos DB
 
 ## Deployment
 
@@ -47,23 +50,37 @@ stateDiagram-v2
 
 Perform each of the following sections in a new shell window.
 
-### Api
+1.  Authenticate your local environment with Azure (this is used by the `DefaultAzureCredential` in code to authenticate)
+
+    ```shell
+    az login
+    ```
+
+1.  Create a `/src/api/.env` file for the backend service
+
+    ```txt
+    AZURE_OPENAI_MODEL_DEPLOYMENT_NAME=<your-openai-model-deployment-name>
+    AZURE_AI_AGENT_ENDPOINT=<your-ai-agent-endpoint>
+    AZURE_AI_AGENT_API_VERSION=2025-01-01-preview
+    APPLICATION_INSIGHTS_CONNECTION_STRING=<your-app-insights-connection-string>
+    BING_CONNECTION_NAME=<your-bing-connection-name>
+    BING_INSTANCE_NAME=<your-bing-instance-name>
+    ```
+
+1.  Create a `/src/web/.env` file for the frontend service
+
+    ```txt
+    services__api__api__0=http://127.0.0.1:8000
+    ```
+
+### Individual terminals
+
+#### Api
 
 1.  Navigate into the `src/api` directory
 
     ```shell
     cd src/api
-    ```
-
-1.  Create a `.env` file with the following values.
-
-    ```txt
-    AZURE_OPENAI_MODEL_DEPLOYMENT_NAME=
-    AZURE_AI_AGENT_ENDPOINT=
-    AZURE_AI_AGENT_API_VERSION=2025-01-01-preview
-    APPLICATION_INSIGHTS_CONNECTION_STRING=
-    BING_CONNECTION_NAME=
-    BING_INSTANCE_NAME=
     ```
 
 1.  Create a virtual environment
@@ -90,7 +107,7 @@ Perform each of the following sections in a new shell window.
     python -m uvicorn app.main:app --log-level debug
     ```
 
-### Web
+#### Web
 
 1.  Open a new shell
 
@@ -118,12 +135,6 @@ Perform each of the following sections in a new shell window.
     pip install -r ./requirements.txt
     ```
 
-1.  Create a `.env` file with the following values.
-
-    ```txt
-    services__api__api__0=http://127.0.0.1:8000
-    ```
-
 1.  Run the web app
 
     ```shell
@@ -131,5 +142,35 @@ Perform each of the following sections in a new shell window.
     ```
 
 1.  Navigate to the URL that is printed
+
+### Docker Compose
+
+1.  Navigate to the root of the repository
+
+    ```shell
+    cd src
+    ```
+
+1.  Create a `.env` file in the `src` directory with the following content. The UID & GID are the user ID and group ID of the user that will run the `azclicredsproxy` container. These are needed because the `azclicredsproxy` needs to be able to access the Azure CLI credentials stored in the `~/.azure` directory. If you are running `docker` from Linux, you don't need the `DISTRONAME` parameter.
+
+You can find the numerical UID & GID needed to access the `~/.azure` directory by running the following command
+    ```shell
+    stat -c "UID: %u, GID: %g" ~/.azure
+    ```
+
+    ```txt
+    UID=
+    GID=
+    USERNAME=
+    DISTRONAME=
+    ```
+
+1.  Update the `docker-compose.yml` file to select the appropriate volume mount for the `azclicredsproxy` service. Comment out one or the other volume mounts as needed.
+
+1.  Run the following command to build & run the Docker images locally
+
+    ```shell
+    docker compose up --build
+    ```
 
 ## Links

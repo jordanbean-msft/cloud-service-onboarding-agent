@@ -1,9 +1,10 @@
 import json
 import logging
 
+from httpx import get
 from opentelemetry import trace
 from semantic_kernel import Kernel
-from semantic_kernel.contents import AuthorRole, ChatHistory
+from semantic_kernel.contents import AuthorRole
 from semantic_kernel.processes.kernel_process import KernelProcessEvent
 from semantic_kernel.processes.local_runtime.local_kernel_process import start
 
@@ -11,8 +12,8 @@ from app.models.chat_input import ChatInput
 from app.models.chat_output import ChatOutput
 from app.models.content_type_enum import ContentTypeEnum
 from app.models.streaming_text_output import StreamingTextOutput, serialize_streaming_text_output
-from app.process_framework.models.cloud_service_onboarding_parameters import \
-    CloudServiceOnboardingParameters
+from app.process_framework.models.retrieve_internal_security_recommendations_step_parameters import \
+    RetrieveInternalSecurityRecommendationsStepParameters
 from app.process_framework.processes.cloud_service_onboarding_process import \
     build_process_cloud_service_onboarding
 from app.routers.context import chat_context_var
@@ -28,15 +29,16 @@ async def build_chat_results(chat_input: ChatInput):
         post_intermediate_message, _, queue = chat_context_var.get()
 
         try:
-            chat_history = await build_chat_history(chat_input.thread_id)
 
-            process = build_process_cloud_service_onboarding(chat_history=chat_history,
+            thread = await get_agent_thread(thread_id=chat_input.thread_id, azure_ai_client=get_create_ai_project_client())
+
+            process = build_process_cloud_service_onboarding(thread=thread,
                                                              post_intermediate_message=post_intermediate_message)
 
             async with await start(
                 process=process,
                 kernel=Kernel(),
-                initial_event=KernelProcessEvent(id="Start", data=CloudServiceOnboardingParameters(
+                initial_event=KernelProcessEvent(id="Start", data=RetrieveInternalSecurityRecommendationsStepParameters(
                     cloud_service_name=chat_input.content,
                 )),
             ) as process_context:
@@ -65,24 +67,7 @@ async def build_chat_results(chat_input: ChatInput):
         await queue.put(None)
 
 
-async def build_chat_history(thread_id):
-    thread = await get_agent_thread(thread_id=thread_id, azure_ai_client=get_create_ai_project_client())
 
-    chat_history = ChatHistory()
-
-    async for message in thread.get_messages():
-        match message.role:
-            case AuthorRole.SYSTEM:
-                chat_history.add_system_message(message.content)
-            case AuthorRole.USER:
-                chat_history.add_user_message(message.content)
-            case AuthorRole.ASSISTANT:
-                chat_history.add_assistant_message(message.content)
-            case AuthorRole.TOOL:
-                chat_history.add_tool_message(message.content)
-            case AuthorRole.DEVELOPER:
-                chat_history.add_developer_message(message.content)
-    return chat_history
 
 __all__ = [
     "build_chat_results",
