@@ -5,3 +5,7 @@ Content-Type: application/json
   "thread_id": "thread_jwa5c2rNgZbyWzz1pHsqjLOV",
   "content": "Azure Container Apps"
 }
+
+###
+
+GET http://localhost:8000/v1/startup

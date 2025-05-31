@@ -45,7 +45,7 @@ You are a helpful assistant that writes Terraform code for cloud services. You w
     @kernel_function(name=Functions.WriteTerraform)
     async def write_terraform(self, context: KernelProcessStepContext, params: WriteTerraformStepParameters):
         await post_beginning_info(title="Write Terraform",
-                                  message=f"Writing Terraform for cloud service: {params.cloud_service_name}...\n",
+                                  message=f"Writing Terraform...\n",
                                   post_intermediate_message=self.state.post_intermediate_message)
 
         try:
@@ -53,7 +53,7 @@ You are a helpful assistant that writes Terraform code for cloud services. You w
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
                 thread=self.state.thread, # type: ignore
-                message=f"Write Terraform code for deploying Azure Policy for the {params.cloud_service_name} service.",
+                message=f"Write Terraform code for deploying Azure Policy. User message: {params.cloud_service_name}.",
                 additional_instructions=self.additional_instructions
             ):
                 if isinstance(response, StreamingTextContent):

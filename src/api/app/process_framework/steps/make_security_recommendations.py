@@ -60,7 +60,7 @@ These recommendations will be used to make an Azure Policy. Do not write the Azu
     @kernel_function(name=Functions.MakeSecurityRecommendations)
     async def make_security_recommendations(self, context: KernelProcessStepContext, params: MakeSecurityRecommendationsStepParameters):
         await post_beginning_info(title="Make Security Recommendations",
-                                  message=f"Running analysis on cloud service: {params.cloud_service_name}...\n",
+                                  message=f"Making security recommendations...\n",
                                   post_intermediate_message=self.state.post_intermediate_message)
 
         try:
@@ -68,7 +68,7 @@ These recommendations will be used to make an Azure Policy. Do not write the Azu
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
                 thread=self.state.thread, # type: ignore
-                message=f"Make security recommendations for {params.cloud_service_name}.",
+                message=f"Make security recommendations. User message: {params.cloud_service_name}.",
                 additional_instructions=self.additional_instructions
             ):
                 if isinstance(response, StreamingTextContent):
