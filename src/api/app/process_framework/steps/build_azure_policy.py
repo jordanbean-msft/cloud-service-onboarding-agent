@@ -47,7 +47,6 @@ You are a helpful assistant that builds Azure Policy security policies. You will
                                   post_intermediate_message=self.state.post_intermediate_message)
 
         try:
-            # ChatHistory is no longer used
             final_response = ""
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",

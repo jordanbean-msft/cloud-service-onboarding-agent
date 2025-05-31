@@ -64,7 +64,6 @@ These recommendations will be used to make an Azure Policy. Do not write the Azu
                                   post_intermediate_message=self.state.post_intermediate_message)
 
         try:
-            # ChatHistory is no longer used
             final_response = ""
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
