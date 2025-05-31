@@ -22,6 +22,7 @@ services:
             - backend
             - azclicredsproxy
         environment:
+            - "services__api__api__0=http://backend:8000"
             - "IDENTITY_ENDPOINT=http://azclicredsproxy:8080/token"
             - "IMDS_ENDPOINT=dummy_required_value"
     azclicredsproxy:
