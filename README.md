@@ -56,6 +56,10 @@ stateDiagram-v2
 
 ## Deployment
 
+## Upload local files
+
+The `cloud-security-agent` will try and use internal security documentation to help it decide what security policies to recommend. If you have any internal security documentation, you can upload it to the `src/api/app/agents/cloud_security_agent/files` directory. These files will get uploaded to the Azure AI Agent service and the agent will use this data to help it make recommendations.
+
 ## Local
 
 Perform each of the following sections in a new shell window.

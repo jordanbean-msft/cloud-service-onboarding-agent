@@ -19,47 +19,6 @@ from app.process_framework.steps.write_terraform import WriteTerraformStep
 logger = logging.getLogger("uvicorn.error")
 tracer = trace.get_tracer(__name__)
 
-
-
-async def retrieve_internal_security_recommendation_step_factory(thread: AzureAIAgentThread,
-                                                                 post_intermediate_message: Callable[[Any], Awaitable[None]]
-                                                                 ) -> RetrieveInternalSecurityRecommendationsStep:
-    step = RetrieveInternalSecurityRecommendationsStep()
-    step.state.thread = thread
-    step.state.post_intermediate_message = post_intermediate_message
-    return step
-
-
-
-async def make_security_recommendation_step_factory(thread: AzureAIAgentThread,
-                                                    post_intermediate_message: Callable[[Any], Awaitable[None]]
-                                                    ) -> MakeSecurityRecommendationsStep:
-    step = MakeSecurityRecommendationsStep()
-    step.state.thread = thread
-    step.state.post_intermediate_message = post_intermediate_message
-    return step
-
-
-
-async def write_terraform_step_factory(thread: AzureAIAgentThread,
-                                       post_intermediate_message: Callable[[Any], Awaitable[None]]
-                                       ) -> WriteTerraformStep:
-    step = WriteTerraformStep()
-    step.state.thread = thread
-    step.state.post_intermediate_message = post_intermediate_message
-    return step
-
-
-
-async def build_azure_policy_step_factory(thread: AzureAIAgentThread,
-                                          post_intermediate_message: Callable[[Any], Awaitable[None]]
-                                          ) -> BuildAzurePolicyStep:
-    step = BuildAzurePolicyStep()
-    step.state.thread = thread
-    step.state.post_intermediate_message = post_intermediate_message
-    return step
-
-
 def build_process_cloud_service_onboarding(thread: AzureAIAgentThread,
                                            post_intermediate_message: Callable[[Any], Awaitable[None]]) -> KernelProcess:
     # Create the process builder
@@ -142,38 +101,30 @@ def setup_events(process_builder,
         WriteTerraformStep.OutputEvents.WriteTerraformError
     ).stop_process()
 
-
+async def step_factory(step_class, thread: AzureAIAgentThread,
+                      post_intermediate_message: Callable[[Any], Awaitable[None]]):
+    step = step_class()
+    step.state.thread = thread
+    step.state.post_intermediate_message = post_intermediate_message
+    return step
 
 def add_steps(process_builder: ProcessBuilder,
               thread: AzureAIAgentThread,
               intermediate_message: Callable[[Any], Awaitable[None]]):
-    retrieve_internal_security_recommendations = process_builder.add_step(
-        step_type=RetrieveInternalSecurityRecommendationsStep,
-        factory_function=partial(retrieve_internal_security_recommendation_step_factory,
-                                 thread=thread,
-                                 post_intermediate_message=intermediate_message)
-    )
-
-    make_security_recommendation_step = process_builder.add_step(
-        step_type=MakeSecurityRecommendationsStep,
-        factory_function=partial(make_security_recommendation_step_factory,
-                                 thread=thread,
-                                 post_intermediate_message=intermediate_message)
-    )
-    build_azure_policy_step = process_builder.add_step(
-        step_type=BuildAzurePolicyStep,
-        factory_function=partial(build_azure_policy_step_factory,
-                                 thread=thread,
-                                 post_intermediate_message=intermediate_message)
-    )
-    write_terraform_step = process_builder.add_step(
-        step_type=WriteTerraformStep,
-        factory_function=partial(write_terraform_step_factory,
-                                 thread=thread,
-                                 post_intermediate_message=intermediate_message)
-    )
-
-    return retrieve_internal_security_recommendations, make_security_recommendation_step, build_azure_policy_step, write_terraform_step
+    step_classes = [
+        RetrieveInternalSecurityRecommendationsStep,
+        MakeSecurityRecommendationsStep,
+        BuildAzurePolicyStep,
+        WriteTerraformStep
+    ]
+    steps = []
+    for step_cls in step_classes:
+        step = process_builder.add_step(
+            step_type=step_cls,
+            factory_function=partial(step_factory, step_cls, thread=thread, post_intermediate_message=intermediate_message)
+        )
+        steps.append(step)
+    return tuple(steps)
 
 
 __all__ = [

@@ -43,7 +43,7 @@ You are a helpful assistant that builds Azure Policy security policies. You will
     @kernel_function(name=Functions.BuildAzurePolicy)
     async def build_azure_policy(self, context: KernelProcessStepContext, params: BuildAzurePolicyStepParameters):
         await post_beginning_info(title="Build Azure Policy",
-                                  message=f"Building Azure policy for cloud service: {params.cloud_service_name}...\n",
+                                  message=f"Building Azure policy...\n",
                                   post_intermediate_message=self.state.post_intermediate_message)
 
         try:
@@ -51,7 +51,7 @@ You are a helpful assistant that builds Azure Policy security policies. You will
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
                 thread=self.state.thread, # type: ignore
-                message=f"Build Azure Policy for {params.cloud_service_name}.",
+                message=f"Build Azure Policy. User message: {params.cloud_service_name}.",
                 additional_instructions=self.additional_instructions
             ):
                 if isinstance(response, StreamingTextContent):
