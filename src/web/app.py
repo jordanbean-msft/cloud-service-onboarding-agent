@@ -49,7 +49,6 @@ if "thread_id" not in st.session_state:
         thread_id = create_thread()
         st.session_state.thread_id = thread_id
 
-
 def render_response(response):
     full_stream_content = ""
     individual_stream_content = ""
@@ -91,10 +90,9 @@ def render_response(response):
                     end_index=output.end_index,
                 )
 
-                individual_stream_content = replace_annotation_placeholder(original=individual_stream_content,
-                                                                           start=streaming_annotation_content.start_index,
-                                                                           end=streaming_annotation_content.end_index,
-                                                                           replacement=streaming_annotation_content.file_id)
+                individual_stream_content = str.replace(individual_stream_content,
+                                                        streaming_annotation_content.quote,
+                                                        f"([{streaming_annotation_content.file_id}]({streaming_annotation_content.file_id}))")
 
             case ContentTypeEnum.ANNOTATION_URL:
                 output = deserialize_streaming_annotation_url_output(json.loads(chunk))
@@ -104,21 +102,19 @@ def render_response(response):
                     thread_id=st.session_state.thread_id,
                     url=output.url,
                     title=output.title,
+                    quote=output.quote,
                     start_index=output.start_index,
                     end_index=output.end_index,
                 )
 
-                quote = individual_stream_content[streaming_annotation_content.start_index:streaming_annotation_content.end_index]
-
-                quote_urls.append(QuoteUrls(quote=quote, # TODO: replace this with the quote from StreamingAnnotationUrlOutput if it gets added
-                                            url=f"([{streaming_annotation_content.title}]({streaming_annotation_content.url}))"))
+                individual_stream_content = str.replace(individual_stream_content,
+                                                        streaming_annotation_content.quote,
+                                                        f"([{streaming_annotation_content.title}]({streaming_annotation_content.url}))")
 
             case ContentTypeEnum.SENTINEL:
                 st.markdown(full_stream_content)
 
                 updated_stream_content = individual_stream_content
-                for quote_url in quote_urls:
-                    updated_stream_content = updated_stream_content.replace(quote_url.quote, quote_url.url)
 
                 st.session_state.messages.add_assistant_message(updated_stream_content)
                 individual_stream_content = ""

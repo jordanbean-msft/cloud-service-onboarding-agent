@@ -1,5 +1,5 @@
-streamlit==1.44.1
+streamlit==1.45.1
 requests==2.32.3
 pydantic==2.11.3
-semantic-kernel[azure]==1.32.0
+semantic-kernel==1.32.2
 pydantic-settings==2.9.1

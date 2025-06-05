@@ -8,6 +8,7 @@ class StreamingAnnotationUrlOutput(ChatOutput):
     start_index: int
     end_index: int
     url: str
+    quote: str
     title: str
     content_type: ContentTypeEnum = ContentTypeEnum.ANNOTATION_URL
 
@@ -18,6 +19,7 @@ def serialize_streaming_annotation_url_output(streaming_annotation_url_output: S
             "thread_id": streaming_annotation_url_output.thread_id,
             "start_index": streaming_annotation_url_output.start_index,
             "end_index": streaming_annotation_url_output.end_index,
+            "quote": streaming_annotation_url_output.quote,
             "url": streaming_annotation_url_output.url,
             "title": streaming_annotation_url_output.title,
         }

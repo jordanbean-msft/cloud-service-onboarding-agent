@@ -31,7 +31,7 @@ class WriteTerraformStep(KernelProcessStep[CloudServiceOnboardingState]):
     state: CloudServiceOnboardingState = Field(default_factory=CloudServiceOnboardingState)  # type: ignore
 
     additional_instructions: ClassVar[str] = """
-You are a helpful assistant that writes Terraform code for cloud services. You will be given a cloud service name, public documentation, internal security recommendations, and an Azure Policy. Your job is to write Terraform code that implements the Azure Policy and follows the recommendations. Do not write write code to deploy the cloud service itself, just the Terraform code that implements the Azure Policy. The Terraform code should be easy to integrate into a Terraform module and follow best practices for Terraform.
+You are a helpful assistant that writes Terraform code for cloud services. You will be given a cloud service name, public documentation, internal security recommendations, and an Azure Policy. Your job is to write Terraform code that deploys the cloud service and follows the security recommendations. The Terraform code should be easy to integrate into a Terraform module and follow best practices for Terraform.
 """
 
     class Functions(StrEnum):
@@ -53,7 +53,7 @@ You are a helpful assistant that writes Terraform code for cloud services. You w
             async for response in invoke_agent_stream(
                 agent_name="cloud-security-agent",
                 thread=self.state.thread, # type: ignore
-                message=f"Write Terraform code for deploying Azure Policy. User message: {params.cloud_service_name}.",
+                message=f"Write Terraform code for deploying the cloud service. User message: {params.cloud_service_name}.",
                 additional_instructions=self.additional_instructions
             ):
                 if isinstance(response, StreamingTextContent):

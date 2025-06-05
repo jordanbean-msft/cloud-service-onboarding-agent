@@ -1,7 +1,8 @@
 import logging
 import os
 
-from azure.ai.agents.models import (BingCustomSearchTool, CodeInterpreterTool,
+from azure.ai.agents.models import (AzureAISearchQueryType, AzureAISearchTool,
+                                    BingCustomSearchTool, CodeInterpreterTool,
                                     FilePurpose, FileSearchTool, ToolSet)
 from semantic_kernel import Kernel
 from semantic_kernel.agents.azure_ai.azure_ai_agent import AzureAIAgent
@@ -71,7 +72,6 @@ async def create_cloud_security_agent(client: AIProjectClient, kernel: Kernel) -
         async for connection in client.connections.list():
             if connection.name == get_settings().bing_connection_name:
                 logger.info(f"Found existing Bing connection: {connection.id}")
-                # bing_grounding_tool = BingGroundingTool(connection_id=connection.id)
                 bing_custom_tool = BingCustomSearchTool(
                     connection_id=connection.id,
                     instance_name=get_settings().bing_instance_name,

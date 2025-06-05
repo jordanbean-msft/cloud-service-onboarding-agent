@@ -9,6 +9,7 @@ class StreamingAnnotationUrlOutput(ChatOutput):
     end_index: int
     url: str
     title: str
+    quote: str
     content_type: ContentTypeEnum = ContentTypeEnum.ANNOTATION_URL
 
 def deserialize_streaming_annotation_url_output(data: dict[str, Any]) -> StreamingAnnotationUrlOutput:
@@ -22,6 +23,7 @@ def deserialize_streaming_annotation_url_output(data: dict[str, Any]) -> Streami
     url = data.get("url")
     title = data.get("title")
     thread_id = data.get("thread_id")
+    quote = data.get("quote")
     # Validate required fields
     if start_index is None:
         raise ValueError("'start_index' is required for deserialization.")
@@ -33,11 +35,13 @@ def deserialize_streaming_annotation_url_output(data: dict[str, Any]) -> Streami
         raise ValueError("'title' is required for deserialization.")
     if thread_id is None:
         raise ValueError("'thread_id' is required for deserialization.")
+    if quote is None:
+        raise ValueError("'quote' is required for deserialization.")
     # Remove keys that are explicitly passed
     extra_data = dict(data)
-    for k in ("start_index", "end_index", "url", "title", "thread_id"):
+    for k in ("start_index", "end_index", "url", "quote", "title", "thread_id"):
         extra_data.pop(k, None)
-    return StreamingAnnotationUrlOutput(start_index=start_index, end_index=end_index, url=url, title=title, thread_id=thread_id, **extra_data)
+    return StreamingAnnotationUrlOutput(start_index=start_index, end_index=end_index, url=url, title=title, quote=quote, thread_id=thread_id, **extra_data)
 
 
 __all__ = ["StreamingAnnotationUrlOutput", "deserialize_streaming_annotation_url_output"]

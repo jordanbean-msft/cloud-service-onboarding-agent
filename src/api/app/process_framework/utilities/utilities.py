@@ -48,6 +48,7 @@ async def _post_intermediate_message(post_intermediate_message,
                         end_index=content.end_index, # type: ignore
                         url=content.url, # type: ignore
                         title=content.title, # type: ignore
+                        quote=content.quote, # type: ignore
                         thread_id=thread_id,
                     )
                     default_serializer = serialize_streaming_annotation_url_output
@@ -125,12 +126,12 @@ async def post_error(title, exception, post_intermediate_message):
 
 async def print_on_intermediate_message(message: ChatMessageContent):
     for item in message.items or []:
-        if isinstance(item, FunctionCallContent):
-            logger.debug(f"Function Call:> {item.name} with arguments: {item.arguments}")
-        elif isinstance(item, FunctionResultContent):
-            logger.debug(f"Function Result:> {item.result} for function: {item.name}")
+        if isinstance(item, FunctionResultContent):
+            print(f"Function Result:> {item.result} for function: {item.name}")
+        elif isinstance(item, FunctionCallContent):
+            print(f"Function Call:> {item.name} with arguments: {item.arguments}")
         else:
-            logger.debug(f"{message.role}: {message.content}")
+            print(f"{item}")
 
 
 async def invoke_agent_stream(agent_name: str,
