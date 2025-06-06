@@ -49,7 +49,7 @@ variable "max_throughput" {
   type        = number
 }
 
-variable "zone_redundant" {
+variable "zone_redundancy_enabled" {
   description = "Enable or disable zone redundancy for the Cosmos DB account"
   type        = bool
 }

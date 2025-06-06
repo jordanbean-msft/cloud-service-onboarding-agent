@@ -14,26 +14,31 @@ module "avm-res-storage-storageaccount" {
   account_tier        = var.account_tier
   diagnostic_settings_blob = {
     default = {
+      name                  = "blob"
       workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   }
   diagnostic_settings_file = {
     default = {
+      name                  = "file"
       workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   }
   diagnostic_settings_queue = {
     default = {
+      name                  = "queue"
       workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   }
   diagnostic_settings_storage_account = {
     default = {
+      name                  = "storageAccount"
       workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   }
   diagnostic_settings_table = {
     default = {
+      name                  = "table"
       workspace_resource_id = var.log_analytics_workspace_resource_id
     }
   }

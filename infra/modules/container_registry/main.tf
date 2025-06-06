@@ -14,7 +14,7 @@ module "avm-res-containerregistry-registry" {
   tags                   = var.tags
   admin_enabled          = false
   anonymous_pull_enabled = false
-  sku                    = "Standard"
+  sku                    = "Premium"
   diagnostic_settings = {
     default = {
       workspace_resource_id = var.log_analytics_workspace_resource_id
@@ -34,4 +34,6 @@ module "avm-res-containerregistry-registry" {
       subnet_resource_id = var.private_endpoint_subnet_resource_id
     }
   }
+  zone_redundancy_enabled  = var.zone_redundancy_enabled
+  retention_policy_in_days = 0
 }

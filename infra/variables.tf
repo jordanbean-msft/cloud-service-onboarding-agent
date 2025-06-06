@@ -3,12 +3,6 @@ variable "location" {
   type        = string
 }
 
-variable "tags" {
-  description = "Tags to be applied to all resources"
-  type        = map(string)
-  default     = {}
-}
-
 variable "resource_group_name" {
   description = "The name of the resource group where resources will be created"
   type        = string
@@ -34,7 +28,6 @@ variable "cosmos_db" {
   type = object({
     document_time_to_live = number,
     max_throughput        = number,
-    zone_redundant        = bool,
   })
 }
 
@@ -63,7 +56,19 @@ variable "container_apps" {
 variable "network" {
   description = "Network configuration for the resources"
   type = object({
-    private_endpoint_subnet_resource_id = string
-    container_apps_subnet_resource_id   = string
+    virtual_network_name         = string
+    private_endpoint_subnet_name = string
+    container_apps_subnet_name   = string
   })
+}
+
+variable "ai_foundry" {
+  description = "Configuration for the AI Foundry resources"
+  type = object({
+  })
+}
+
+variable "zone_redundancy_enabled" {
+  description = "Enable or disable zone redundancy for the Cosmos DB account"
+  type        = bool
 }

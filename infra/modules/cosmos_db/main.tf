@@ -31,4 +31,11 @@ module "avm-res-documentdb-databaseaccount" {
     }
   }
   network_acl_bypass_for_azure_services = "true"
+  geo_locations = [
+    {
+      location          = var.location
+      failover_priority = 0
+      is_zone_redundant = var.zone_redundancy_enabled
+    }
+  ]
 }

@@ -38,3 +38,8 @@ variable "private_endpoint_subnet_resource_id" {
   description = "The resource ID of the subnet where the private endpoint will be created"
   type        = string
 }
+
+variable "zone_redundancy_enabled" {
+  description = "Enable or disable zone redundancy for the Container Registry"
+  type        = bool
+}
