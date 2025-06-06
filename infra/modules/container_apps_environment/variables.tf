@@ -34,7 +34,22 @@ variable "private_endpoint_subnet_resource_id" {
   type        = string
 }
 
+variable "container_apps_subnet_resource_id" {
+  description = "The resource ID of the subnet for Container Apps"
+  type        = string
+}
+
 variable "log_analytics_workspace_id" {
-  description = "The ID of the Log Analytics Workspace to link with the Storage Account"
+  description = "The ID of the Log Analytics Workspace to link with Container Apps"
+  type        = string
+}
+
+variable "log_analytics_workspace_customer_id" {
+  description = "The customer ID of the Log Analytics Workspace"
+  type        = string
+}
+
+variable "log_analytics_workspace_primary_shared_key" {
+  description = "The primary key of the Log Analytics Workspace"
   type        = string
 }

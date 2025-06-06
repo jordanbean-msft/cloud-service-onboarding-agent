@@ -1,15 +1,5 @@
-variable "name_suffix" {
-  description = "Suffix for the name of the resources"
-  type        = string
-}
-
 variable "location" {
   description = "The Azure location to deploy the resources"
-  type        = string
-}
-
-variable "virtual_network_cidr" {
-  description = "The CIDR Suffix for the virtual network. This should be at least a /22. Example 10.0.0.0/22"
   type        = string
 }
 
@@ -21,5 +11,40 @@ variable "tags" {
 
 variable "resource_group_name" {
   description = "The name of the resource group where resources will be created"
+  type        = string
+}
+
+variable "public_network_access_enabled" {
+  description = "Enable or disable public network access to the Storage Account"
+  type        = bool
+}
+
+variable "user_assigned_identity_resource_id" {
+  description = "The resource ID of the user-assigned identity to assign roles to"
+  type        = string
+}
+
+variable "log_analytics_workspace_id" {
+  description = "The ID of the Log Analytics Workspace to link with Container Apps"
+  type        = string
+}
+
+variable "name" {
+  description = "The name of the Container App"
+  type        = string
+}
+
+variable "container_app_environment_resource_id" {
+  description = "The resource ID of the Container App Environment"
+  type        = string
+}
+
+variable "template" {
+  description = "The template for the Container App, including configuration for containers, scale rules, and other settings"
+  type        = any
+}
+
+variable "container_registry_hostname" {
+  description = "The hostname of the Container Registry"
   type        = string
 }
