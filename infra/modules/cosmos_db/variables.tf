@@ -38,3 +38,18 @@ variable "private_endpoint_subnet_resource_id" {
   description = "The resource ID of the subnet where the private endpoint will be created"
   type        = string
 }
+
+variable "document_time_to_live" {
+  description = "Default time to live for documents in the Cosmos DB account"
+  type        = number
+}
+
+variable "max_throughput" {
+  description = "Maximum throughput for the Cosmos DB account"
+  type        = number
+}
+
+variable "zone_redundant" {
+  description = "Enable or disable zone redundancy for the Cosmos DB account"
+  type        = bool
+}

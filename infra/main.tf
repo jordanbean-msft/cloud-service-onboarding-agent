@@ -1,5 +1,5 @@
 locals {
-  tags           = { azd-env-name : var.environment_name }
+  tags           = merge(var.tags, { azd-env-name : var.environment_name })
   sha            = base64encode(sha256("${var.location}${data.azurerm_client_config.current.subscription_id}"))
   resource_token = substr(replace(lower(local.sha), "[^A-Za-z0-9_]", ""), 0, 13)
 }
@@ -52,7 +52,7 @@ module "container_registry" {
   resource_group_name                 = var.resource_group_name
   log_analytics_workspace_id          = module.log_analytics_workspace.log_analytics_workspace_id
   public_network_access_enabled       = var.public_network_access_enabled
-  private_endpoint_subnet_resource_id = var.private_endpoint_subnet_resource_id
+  private_endpoint_subnet_resource_id = var.network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
 }
 
@@ -67,8 +67,10 @@ module "storage_account" {
   resource_group_name                 = var.resource_group_name
   log_analytics_workspace_id          = module.log_analytics_workspace.log_analytics_workspace_id
   public_network_access_enabled       = var.public_network_access_enabled
-  private_endpoint_subnet_resource_id = var.private_endpoint_subnet_resource_id
+  private_endpoint_subnet_resource_id = var.network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
+  account_tier                        = var.storage.account_tier
+  account_replication_type            = var.storage.account_replication_type
 }
 
 # ------------------------------------------------------------------------------------------------------
@@ -84,8 +86,7 @@ module "container_apps_environment" {
   log_analytics_workspace_customer_id        = module.log_analytics_workspace.log_analytics_workspace_customer_id
   log_analytics_workspace_primary_shared_key = module.log_analytics_workspace.log_analytics_workspace_primary_shared_key
   public_network_access_enabled              = var.public_network_access_enabled
-  private_endpoint_subnet_resource_id        = var.private_endpoint_subnet_resource_id
-  container_apps_subnet_resource_id          = var.container_apps_subnet_resource_id
+  container_apps_subnet_resource_id          = var.network.container_apps_subnet_resource_id
   user_assigned_identity_principal_id        = module.managed_identity.user_assigned_identity_principal_id
 }
 
@@ -95,8 +96,8 @@ module "container_apps_environment" {
 
 module "container_apps_frontend" {
   source                                = "./modules/container_apps"
-  name                                  = var.container_app_front_end_name
-  template                              = var.container_app_front_end_template
+  name                                  = var.container_app.frontend.name
+  template                              = var.container_app.frontend.template
   location                              = var.location
   resource_group_name                   = var.resource_group_name
   log_analytics_workspace_id            = module.log_analytics_workspace.log_analytics_workspace_id
@@ -112,8 +113,8 @@ module "container_apps_frontend" {
 
 module "container_apps_backend" {
   source                                = "./modules/container_apps"
-  name                                  = var.container_app_back_end_name
-  template                              = var.container_app_back_end_template
+  name                                  = var.container_app.backend.name
+  template                              = var.container_app.backend.template
   location                              = var.location
   resource_group_name                   = var.resource_group_name
   log_analytics_workspace_id            = module.log_analytics_workspace.log_analytics_workspace_id
@@ -134,6 +135,10 @@ module "cosmos_db" {
   resource_group_name                 = var.resource_group_name
   log_analytics_workspace_id          = module.log_analytics_workspace.log_analytics_workspace_id
   public_network_access_enabled       = var.public_network_access_enabled
-  private_endpoint_subnet_resource_id = var.private_endpoint_subnet_resource_id
+  private_endpoint_subnet_resource_id = var.network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
+  document_time_to_live               = var.cosmos_db.document_time_to_live
+  max_throughput                      = var.cosmos_db.max_throughput
+  zone_redundant                      = var.cosmos_db.zone_redundant
 }
+

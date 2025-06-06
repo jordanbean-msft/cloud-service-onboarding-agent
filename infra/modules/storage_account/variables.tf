@@ -38,3 +38,13 @@ variable "log_analytics_workspace_id" {
   description = "The ID of the Log Analytics Workspace to link with the Storage Account"
   type        = string
 }
+
+variable "account_tier" {
+  description = "The SKU tier for the Storage Account"
+  type        = string
+}
+
+variable "account_replication_type" {
+  description = "The replication type for the Storage Account"
+  type        = string
+}

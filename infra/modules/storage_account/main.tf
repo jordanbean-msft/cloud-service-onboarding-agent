@@ -11,7 +11,7 @@ module "avm-res-storage-storageaccount" {
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
-  account_tier        = "Standard"
+  account_tier        = var.account_tier
   diagnostic_settings_blob = {
     workspace_resource_id = var.log_analytics_workspace_id
   }
@@ -44,4 +44,5 @@ module "avm-res-storage-storageaccount" {
       subnet_resource_id = var.private_endpoint_subnet_resource_id
     }
   }
+  account_replication_type = var.account_replication_type
 }

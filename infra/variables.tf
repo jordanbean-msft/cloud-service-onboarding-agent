@@ -23,13 +23,33 @@ variable "public_network_access_enabled" {
   description = "Enable or disable public network access to the resources"
   type        = bool
 }
-
-variable "private_endpoint_subnet_resource_id" {
-  description = "The resource ID of the subnet where the private endpoint will be created"
-  type        = string
+variable "cosmos_db" {
+  description = "Configuration for the Cosmos DB account"
+  type = object({
+    document_time_to_live = number,
+    max_throughput        = number,
+    zone_redundant        = bool,
+  })
 }
 
-variable "container_apps_subnet_resource_id" {
-  description = "The resource ID of the subnet for Container Apps"
-  type        = string
+variable "storage_account" {
+  description = "Configuration for the Storage Account"
+  type = object({
+    account_tier             = string,
+    account_replication_type = string,
+  })
+}
+
+variable "container_apps" {
+  description = "Configuration for the Container Apps"
+  type = object({
+    frontend = object({
+      name     = string,
+      template = any
+    }),
+    backend = object({
+      name     = string,
+      template = any
+    })
+  })
 }
