@@ -161,5 +161,6 @@ module "cosmos_db" {
   document_time_to_live               = var.cosmos_db.document_time_to_live
   max_throughput                      = var.cosmos_db.max_throughput
   zone_redundancy_enabled             = var.zone_redundancy_enabled
+  subscription_id                     = data.azurerm_client_config.current.subscription_id
 }
 

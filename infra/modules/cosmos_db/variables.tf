@@ -53,3 +53,8 @@ variable "zone_redundancy_enabled" {
   description = "Enable or disable zone redundancy for the Cosmos DB account"
   type        = bool
 }
+
+variable "subscription_id" {
+  description = "The Azure subscription ID where the Cosmos DB account will be created"
+  type        = string
+}
