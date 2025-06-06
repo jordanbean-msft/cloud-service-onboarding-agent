@@ -11,4 +11,4 @@ A Streamlit app that uses a FastAPI backend to implement a multi-agent system fo
 
 - Implemented using Streamlit
 
-Use context7 MCP to get the latest version of API calls and examples.
+Use Context7 MCP server to get the latest version of API calls and examples.

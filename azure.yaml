@@ -1,2 +1,16 @@
-name: template-repository
+name: cloud-service-onboarding-agent
 services:
+  api:
+    project: ./src/api
+    language: python
+    host: containerapp
+    docker:
+      remoteBuild: true
+  web:
+    project: ./src/web
+    language: python
+    host: containerapp
+    docker:
+      remoteBuild: true
+infra:
+  provider: terraform
