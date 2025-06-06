@@ -21,12 +21,12 @@ module "log_analytics_workspace" {
 # ------------------------------------------------------------------------------------------------------
 
 module "application_insights" {
-  source                     = "./modules/app_insights"
-  name_suffix                = local.resource_token
-  location                   = var.location
-  resource_group_name        = var.resource_group_name
-  log_analytics_workspace_id = module.log_analytics_workspace.log_analytics_workspace_id
-  tags                       = local.tags
+  source                = "./modules/app_insights"
+  name_suffix           = local.resource_token
+  location              = var.location
+  resource_group_name   = var.resource_group_name
+  workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
+  tags                  = local.tags
 }
 
 # ------------------------------------------------------------------------------------------------------
@@ -50,7 +50,7 @@ module "container_registry" {
   name_suffix                         = local.resource_token
   location                            = var.location
   resource_group_name                 = var.resource_group_name
-  log_analytics_workspace_id          = module.log_analytics_workspace.log_analytics_workspace_id
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
   public_network_access_enabled       = var.public_network_access_enabled
   private_endpoint_subnet_resource_id = var.network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
@@ -65,13 +65,12 @@ module "storage_account" {
   name_suffix                         = local.resource_token
   location                            = var.location
   resource_group_name                 = var.resource_group_name
-  log_analytics_workspace_id          = module.log_analytics_workspace.log_analytics_workspace_id
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
   public_network_access_enabled       = var.public_network_access_enabled
   private_endpoint_subnet_resource_id = var.network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
-  account_tier                        = var.storage.account_tier
-  account_replication_type            = var.storage.account_replication_type
-  principal_id                        = var.principal_id
+  account_tier                        = var.storage_account.account_tier
+  account_replication_type            = var.storage_account.account_replication_type
 }
 
 # ------------------------------------------------------------------------------------------------------
@@ -83,7 +82,7 @@ module "container_apps_environment" {
   name_suffix                                = local.resource_token
   location                                   = var.location
   resource_group_name                        = var.resource_group_name
-  log_analytics_workspace_id                 = module.log_analytics_workspace.log_analytics_workspace_id
+  log_analytics_workspace_resource_id        = module.log_analytics_workspace.log_analytics_workspace_resource_id
   log_analytics_workspace_customer_id        = module.log_analytics_workspace.log_analytics_workspace_customer_id
   log_analytics_workspace_primary_shared_key = module.log_analytics_workspace.log_analytics_workspace_primary_shared_key
   public_network_access_enabled              = var.public_network_access_enabled
@@ -96,16 +95,15 @@ module "container_apps_environment" {
 # ------------------------------------------------------------------------------------------------------
 
 module "container_apps_frontend" {
-  source                                = "./modules/container_apps"
-  name                                  = var.container_app.frontend.name
-  template                              = var.container_app.frontend.template
-  location                              = var.location
-  resource_group_name                   = var.resource_group_name
-  log_analytics_workspace_id            = module.log_analytics_workspace.log_analytics_workspace_id
-  public_network_access_enabled         = var.public_network_access_enabled
-  user_assigned_identity_resource_id    = module.managed_identity.user_assigned_identity_resource_id
-  container_app_environment_resource_id = module.container_apps_environment.container_apps_environment_id
-  container_registry_hostname           = module.container_registry.container_registry_name
+  source                                 = "./modules/container_apps"
+  name                                   = var.container_apps.frontend.name
+  template                               = var.container_apps.frontend.template
+  location                               = var.location
+  resource_group_name                    = var.resource_group_name
+  public_network_access_enabled          = var.public_network_access_enabled
+  user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
+  container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
+  container_registry_hostname            = module.container_registry.container_registry_name
 }
 
 # ------------------------------------------------------------------------------------------------------
@@ -113,16 +111,15 @@ module "container_apps_frontend" {
 # ------------------------------------------------------------------------------------------------------
 
 module "container_apps_backend" {
-  source                                = "./modules/container_apps"
-  name                                  = var.container_app.backend.name
-  template                              = var.container_app.backend.template
-  location                              = var.location
-  resource_group_name                   = var.resource_group_name
-  log_analytics_workspace_id            = module.log_analytics_workspace.log_analytics_workspace_id
-  public_network_access_enabled         = var.public_network_access_enabled
-  user_assigned_identity_resource_id    = module.managed_identity.user_assigned_identity_resource_id
-  container_app_environment_resource_id = module.container_apps_environment.container_apps_environment_id
-  container_registry_hostname           = module.container_registry.container_registry_name
+  source                                 = "./modules/container_apps"
+  name                                   = var.container_apps.backend.name
+  template                               = var.container_apps.backend.template
+  location                               = var.location
+  resource_group_name                    = var.resource_group_name
+  public_network_access_enabled          = var.public_network_access_enabled
+  user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
+  container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
+  container_registry_hostname            = module.container_registry.container_registry_name
 }
 
 # ------------------------------------------------------------------------------------------------------
@@ -134,7 +131,7 @@ module "cosmos_db" {
   name_suffix                         = local.resource_token
   location                            = var.location
   resource_group_name                 = var.resource_group_name
-  log_analytics_workspace_id          = module.log_analytics_workspace.log_analytics_workspace_id
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
   public_network_access_enabled       = var.public_network_access_enabled
   private_endpoint_subnet_resource_id = var.network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id

@@ -34,7 +34,7 @@ variable "container_apps_subnet_resource_id" {
   type        = string
 }
 
-variable "log_analytics_workspace_id" {
+variable "log_analytics_workspace_resource_id" {
   description = "The ID of the Log Analytics Workspace to link with Container Apps"
   type        = string
 }

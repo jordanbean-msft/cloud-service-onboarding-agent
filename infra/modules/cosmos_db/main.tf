@@ -1,30 +1,33 @@
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = ">= 0.3.0"
-  suffix  = var.name_suffix
+  suffix  = [var.name_suffix]
 }
 
 module "avm-res-documentdb-databaseaccount" {
   source              = "Azure/avm-res-documentdb-databaseaccount/azurerm"
   version             = "0.8.0"
-  name                = module.naming.cosmos_db.name
+  name                = module.naming.cosmosdb_account.name
   location            = var.location
   resource_group_name = var.resource_group_name
   tags                = var.tags
   diagnostic_settings = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   private_endpoints = {
     primary = {
       subnet_resource_id = var.private_endpoint_subnet_resource_id
+      subresource_name   = "SQL"
     }
   }
   public_network_access_enabled = var.public_network_access_enabled
   role_assignments = {
-    var.user_assigned_identity_principal_id = {
-      principal_id     = var.user_assigned_identity_principal_id
-      principal_type   = "ServicePrincipal"
-      role_assignments = "Cosmos DB Built-in Data Contributor"
+    user_assigned_managed_identity = {
+      principal_id               = var.user_assigned_identity_principal_id
+      principal_type             = "ServicePrincipal"
+      role_definition_id_or_name = "Cosmos DB Built-in Data Contributor"
     }
   }
   network_acl_bypass_for_azure_services = "true"

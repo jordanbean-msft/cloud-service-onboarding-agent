@@ -1,7 +1,7 @@
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = ">= 0.3.0"
-  suffix  = var.name_suffix
+  suffix  = [var.name_suffix]
 }
 
 module "avm-res-storage-storageaccount" {
@@ -13,40 +13,58 @@ module "avm-res-storage-storageaccount" {
   tags                = var.tags
   account_tier        = var.account_tier
   diagnostic_settings_blob = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   diagnostic_settings_file = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   diagnostic_settings_queue = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   diagnostic_settings_storage_account = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   diagnostic_settings_table = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   network_rules = {
     default_action = "Deny"
-    bypass         = "AzureServices"
+    bypass         = ["AzureServices"]
   }
   public_network_access_enabled = var.public_network_access_enabled
   role_assignments = {
-    var.user_assigned_identity_principal_id = {
-      principal_id     = var.user_assigned_identity_principal_id
-      principal_type   = "ServicePrincipal"
-      role_assignments = "StorageBlobDataContributor"
-    }
-    var.principal_id = {
-      principal_id     = var.principal_id
-      principal_type   = "UserPrincipal"
-      role_assignments = "StorageBlobDataContributor"
+    user_assigned_managed_identity = {
+      principal_id               = var.user_assigned_identity_principal_id
+      principal_type             = "ServicePrincipal"
+      role_definition_id_or_name = "StorageBlobDataContributor"
     }
   }
   private_endpoints = {
-    primary = {
+    blob = {
       subnet_resource_id = var.private_endpoint_subnet_resource_id
+      subresource_name   = "blob"
+    }
+    file = {
+      subnet_resource_id = var.private_endpoint_subnet_resource_id
+      subresource_name   = "file"
+    }
+    queue = {
+      subnet_resource_id = var.private_endpoint_subnet_resource_id
+      subresource_name   = "queue"
+    }
+    table = {
+      subnet_resource_id = var.private_endpoint_subnet_resource_id
+      subresource_name   = "table"
     }
   }
   account_replication_type = var.account_replication_type

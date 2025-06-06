@@ -1,9 +1,9 @@
 output "cosmos_db_account_id" {
   description = "The ID of the Cosmos DB account"
-  value       = module.avm-res-cosmosdb-account.id
+  value       = module.avm-res-documentdb-databaseaccount.resource_id
 }
 
 output "cosmos_db_account_name" {
   description = "The name of the Cosmos DB account"
-  value       = module.avm-res-cosmosdb-account.name
+  value       = module.avm-res-documentdb-databaseaccount.name
 }

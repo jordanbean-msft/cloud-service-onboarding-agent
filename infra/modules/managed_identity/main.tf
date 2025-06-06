@@ -1,7 +1,7 @@
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = ">= 0.3.0"
-  suffix  = var.name_suffix
+  suffix  = [var.name_suffix]
 }
 
 module "avm-res-managedidentity-userassignedidentity" {

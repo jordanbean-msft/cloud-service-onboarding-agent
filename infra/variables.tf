@@ -59,3 +59,11 @@ variable "container_apps" {
     })
   })
 }
+
+variable "network" {
+  description = "Network configuration for the resources"
+  type = object({
+    private_endpoint_subnet_resource_id = string
+    container_apps_subnet_resource_id   = string
+  })
+}

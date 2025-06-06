@@ -1,7 +1,7 @@
 module "naming" {
   source  = "Azure/naming/azurerm"
   version = ">= 0.3.0"
-  suffix  = var.name_suffix
+  suffix  = [var.name_suffix]
 }
 
 module "avm-res-app-managedenvironment" {
@@ -12,7 +12,9 @@ module "avm-res-app-managedenvironment" {
   resource_group_name = var.resource_group_name
   tags                = var.tags
   diagnostic_settings = {
-    workspace_resource_id = var.log_analytics_workspace_id
+    default = {
+      workspace_resource_id = var.log_analytics_workspace_resource_id
+    }
   }
   log_analytics_workspace_customer_id        = var.log_analytics_workspace_customer_id
   infrastructure_subnet_id                   = var.container_apps_subnet_resource_id

@@ -24,17 +24,12 @@ variable "user_assigned_identity_resource_id" {
   type        = string
 }
 
-variable "log_analytics_workspace_id" {
-  description = "The ID of the Log Analytics Workspace to link with Container Apps"
-  type        = string
-}
-
 variable "name" {
   description = "The name of the Container App"
   type        = string
 }
 
-variable "container_app_environment_resource_id" {
+variable "container_apps_environment_resource_id" {
   description = "The resource ID of the Container App Environment"
   type        = string
 }

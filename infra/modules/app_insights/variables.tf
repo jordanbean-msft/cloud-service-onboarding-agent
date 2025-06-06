@@ -19,7 +19,7 @@ variable "resource_group_name" {
   type        = string
 }
 
-variable "log_analytics_workspace_id" {
+variable "workspace_resource_id" {
   description = "The ID of the Log Analytics Workspace to link with Application Insights"
   type        = string
 }

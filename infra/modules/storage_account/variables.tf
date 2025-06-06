@@ -34,7 +34,7 @@ variable "private_endpoint_subnet_resource_id" {
   type        = string
 }
 
-variable "log_analytics_workspace_id" {
+variable "log_analytics_workspace_resource_id" {
   description = "The ID of the Log Analytics Workspace to link with the Storage Account"
   type        = string
 }
@@ -46,10 +46,5 @@ variable "account_tier" {
 
 variable "account_replication_type" {
   description = "The replication type for the Storage Account"
-  type        = string
-}
-
-variable "principal_id" {
-  description = "The principal ID to assign roles to"
   type        = string
 }

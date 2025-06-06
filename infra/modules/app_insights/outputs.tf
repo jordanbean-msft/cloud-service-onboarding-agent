@@ -1,6 +1,6 @@
 output "application_insights_id" {
   description = "The ID of the Application Insights resource"
-  value       = module.avm-res-insights-component.id
+  value       = module.avm-res-insights-component.resource_id
 }
 
 output "application_insights_name" {

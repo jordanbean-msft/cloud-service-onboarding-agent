@@ -1,6 +1,6 @@
 output "container_registry_id" {
   description = "The ID of the Azure Container Registry"
-  value       = module.avm-res-containerregistry-registry.id
+  value       = module.avm-res-containerregistry-registry.resource_id
 }
 
 output "container_registry_name" {
@@ -10,5 +10,5 @@ output "container_registry_name" {
 
 output "container_registry_login_server" {
   description = "The login server of the Azure Container Registry"
-  value       = module.avm-res-containerregistry-registry.login_server
+  value       = module.avm-res-containerregistry-registry.resource.login_server
 }

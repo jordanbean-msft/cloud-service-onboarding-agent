@@ -1,11 +1,11 @@
 output "user_assigned_identity_id" {
   description = "The ID of the User Assigned Managed Identity"
-  value       = module.avm-res-managedidentity-userassignedidentity.id
+  value       = module.avm-res-managedidentity-userassignedidentity.resource_id
 }
 
 output "user_assigned_identity_name" {
   description = "The name of the User Assigned Managed Identity"
-  value       = module.avm-res-managedidentity-userassignedidentity.name
+  value       = module.avm-res-managedidentity-userassignedidentity.resource_name
 }
 
 output "user_assigned_identity_client_id" {
