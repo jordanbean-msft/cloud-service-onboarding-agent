@@ -113,37 +113,41 @@ module "container_apps_environment" {
   user_assigned_identity_principal_id        = module.managed_identity.user_assigned_identity_principal_id
 }
 
-# # ------------------------------------------------------------------------------------------------------
-# # Deploy Container Apps - Frontend
-# # ------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------
+# Deploy Container Apps - Frontend
+# ------------------------------------------------------------------------------------------------------
 
-# module "container_apps_frontend" {
-#   source                                 = "./modules/container_apps"
-#   name                                   = var.container_apps.frontend.name
-#   template                               = var.container_apps.frontend.template
-#   location                               = var.location
-#   resource_group_name                    = var.resource_group_name
-#   public_network_access_enabled          = var.public_network_access_enabled
-#   user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
-#   container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
-#   container_registry_hostname            = module.container_registry.container_registry_name
-# }
+module "container_apps_frontend" {
+  source                                 = "./modules/container_apps"
+  name                                   = var.container_apps.frontend.name
+  location                               = var.location
+  resource_group_name                    = var.resource_group_name
+  public_network_access_enabled          = var.public_network_access_enabled
+  user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
+  container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
+  container_registry_hostname            = module.container_registry.container_registry_name
+  ingress                                = var.container_apps.frontend.ingress
+  scale                                  = var.container_apps.frontend.scale
+  containers                             = var.container_apps.frontend.containers
+}
 
-# # ------------------------------------------------------------------------------------------------------
-# # Deploy Container Apps - Backend
-# # ------------------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------------------
+# Deploy Container Apps - Backend
+# ------------------------------------------------------------------------------------------------------
 
-# module "container_apps_backend" {
-#   source                                 = "./modules/container_apps"
-#   name                                   = var.container_apps.backend.name
-#   template                               = var.container_apps.backend.template
-#   location                               = var.location
-#   resource_group_name                    = var.resource_group_name
-#   public_network_access_enabled          = var.public_network_access_enabled
-#   user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
-#   container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
-#   container_registry_hostname            = module.container_registry.container_registry_name
-# }
+module "container_apps_backend" {
+  source                                 = "./modules/container_apps"
+  name                                   = var.container_apps.backend.name
+  location                               = var.location
+  resource_group_name                    = var.resource_group_name
+  public_network_access_enabled          = var.public_network_access_enabled
+  user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
+  container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
+  container_registry_hostname            = module.container_registry.container_registry_name
+  ingress                                = var.container_apps.backend.ingress
+  scale                                  = var.container_apps.backend.scale
+  containers                             = var.container_apps.backend.containers
+}
 
 # ------------------------------------------------------------------------------------------------------
 # Deploy Cosmos DB
@@ -164,3 +168,17 @@ module "cosmos_db" {
   subscription_id                     = data.azurerm_client_config.current.subscription_id
 }
 
+# ------------------------------------------------------------------------------------------------------
+# Deploy Bing Custom Search
+# ------------------------------------------------------------------------------------------------------
+
+module "bing_custom_search" {
+  source                              = "./modules/bing_custom_search"
+  name_suffix                         = local.resource_token
+  location                            = var.location
+  resource_group_name                 = var.resource_group_name
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
+  public_network_access_enabled       = var.public_network_access_enabled
+  private_endpoint_subnet_resource_id = module.virtual_network.private_endpoint_subnet_resource_id
+  user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
+}

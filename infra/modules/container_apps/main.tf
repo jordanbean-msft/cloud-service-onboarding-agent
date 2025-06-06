@@ -6,7 +6,6 @@ module "avm-res-app-containerapp" {
   tags                                  = var.tags
   revision_mode                         = "Single"
   container_app_environment_resource_id = var.container_apps_environment_resource_id
-  template                              = var.template
   managed_identities = {
     user_assigned_resource_ids = [var.user_assigned_identity_resource_id]
   }
@@ -14,4 +13,24 @@ module "avm-res-app-containerapp" {
     server   = var.container_registry_hostname
     identity = var.user_assigned_identity_resource_id
   }]
+  template = {
+    containers = [
+      for container in var.containers : {
+        name   = container.name
+        image  = "${container.image != "" ? container.image : "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"}"
+        cpu    = container.cpu
+        memory = container.memory
+      }
+    ]
+    min_replicas = var.scale.min_replicas
+    max_replicas = var.scale.max_replicas
+  }
+  ingress = {
+    external_enabled = var.ingress.external_enabled
+    target_port      = var.ingress.target_port
+    traffic_weight = [{
+      latest_revision = true
+      percentage      = 100
+    }]
+  }
 }

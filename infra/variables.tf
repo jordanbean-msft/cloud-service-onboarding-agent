@@ -43,13 +43,39 @@ variable "container_apps" {
   description = "Configuration for the Container Apps"
   type = object({
     frontend = object({
-      name     = string,
-      template = any
+      name = string,
+      containers = list(object({
+        name   = string,
+        image  = string
+        cpu    = number,
+        memory = string
+      })),
+      ingress = object({
+        external_enabled = bool,
+        target_port      = number
+      }),
+      scale = object({
+        min_replicas = number,
+        max_replicas = number,
+      }),
     }),
     backend = object({
-      name     = string,
-      template = any
-    })
+      name = string,
+      containers = list(object({
+        name   = string,
+        image  = string
+        cpu    = number,
+        memory = string
+      })),
+      ingress = object({
+        external_enabled = bool,
+        target_port      = number
+      }),
+      scale = object({
+        min_replicas = number,
+        max_replicas = number,
+      }),
+    }),
   })
 }
 

@@ -34,12 +34,33 @@ variable "container_apps_environment_resource_id" {
   type        = string
 }
 
-variable "template" {
-  description = "The template for the Container App, including configuration for containers, scale rules, and other settings"
-  type        = any
-}
-
 variable "container_registry_hostname" {
   description = "The hostname of the Container Registry"
   type        = string
+}
+
+variable "ingress" {
+  description = "Configuration for ingress settings of the Container App"
+  type = object({
+    external_enabled = bool
+    target_port      = number
+  })
+}
+
+variable "scale" {
+  description = "Configuration for scaling rules of the Container App"
+  type = object({
+    min_replicas = number
+    max_replicas = number
+  })
+}
+
+variable "containers" {
+  description = "List of containers to be deployed in the Container App"
+  type = list(object({
+    name   = string
+    image  = string
+    cpu    = number
+    memory = string
+  }))
 }
