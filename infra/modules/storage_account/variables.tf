@@ -48,3 +48,8 @@ variable "account_replication_type" {
   description = "The replication type for the Storage Account"
   type        = string
 }
+
+variable "principal_id" {
+  description = "The principal ID to assign roles to"
+  type        = string
+}

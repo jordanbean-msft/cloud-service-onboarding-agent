@@ -23,6 +23,12 @@ variable "public_network_access_enabled" {
   description = "Enable or disable public network access to the resources"
   type        = bool
 }
+
+variable "principal_id" {
+  description = "The principal ID of the user to assign roles to"
+  type        = string
+}
+
 variable "cosmos_db" {
   description = "Configuration for the Cosmos DB account"
   type = object({

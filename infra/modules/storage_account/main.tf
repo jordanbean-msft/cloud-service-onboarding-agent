@@ -38,6 +38,11 @@ module "avm-res-storage-storageaccount" {
       principal_type   = "ServicePrincipal"
       role_assignments = "StorageBlobDataContributor"
     }
+    var.principal_id = {
+      principal_id     = var.principal_id
+      principal_type   = "UserPrincipal"
+      role_assignments = "StorageBlobDataContributor"
+    }
   }
   private_endpoints = {
     primary = {

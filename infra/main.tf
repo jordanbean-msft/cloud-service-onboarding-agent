@@ -71,6 +71,7 @@ module "storage_account" {
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
   account_tier                        = var.storage.account_tier
   account_replication_type            = var.storage.account_replication_type
+  principal_id                        = var.principal_id
 }
 
 # ------------------------------------------------------------------------------------------------------
