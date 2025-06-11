@@ -125,7 +125,7 @@ module "container_apps_frontend" {
   public_network_access_enabled          = var.public_network_access_enabled
   user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
   container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
-  container_registry_hostname            = module.container_registry.container_registry_name
+  container_registry_hostname            = module.container_registry.container_registry_login_server
   ingress                                = var.container_apps.frontend.ingress
   scale                                  = var.container_apps.frontend.scale
   containers                             = var.container_apps.frontend.containers
@@ -143,7 +143,7 @@ module "container_apps_backend" {
   public_network_access_enabled          = var.public_network_access_enabled
   user_assigned_identity_resource_id     = module.managed_identity.user_assigned_identity_id
   container_apps_environment_resource_id = module.container_apps_environment.container_apps_environment_id
-  container_registry_hostname            = module.container_registry.container_registry_name
+  container_registry_hostname            = module.container_registry.container_registry_login_server
   ingress                                = var.container_apps.backend.ingress
   scale                                  = var.container_apps.backend.scale
   containers                             = var.container_apps.backend.containers

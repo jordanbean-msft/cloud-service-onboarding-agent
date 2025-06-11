@@ -9,7 +9,6 @@ resource "azapi_update_resource" "add_subnet_delegation_for_container_apps" {
           name = "aca-delegation"
           properties = {
             serviceName = "Microsoft.App/environments"
-            actions     = ["Microsoft.Network/virtualNetworks/subnets/action"]
           }
         }
       ]

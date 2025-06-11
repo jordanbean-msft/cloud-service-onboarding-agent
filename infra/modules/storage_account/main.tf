@@ -76,5 +76,6 @@ module "avm-res-storage-storageaccount" {
       subresource_name   = "table"
     }
   }
-  account_replication_type = var.account_replication_type
+  private_endpoints_manage_dns_zone_group = false
+  account_replication_type                = var.account_replication_type
 }

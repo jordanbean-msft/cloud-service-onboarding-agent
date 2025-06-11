@@ -22,7 +22,8 @@ module "avm-res-documentdb-databaseaccount" {
       subresource_name   = "SQL"
     }
   }
-  public_network_access_enabled = var.public_network_access_enabled
+  private_endpoints_manage_dns_zone_group = false
+  public_network_access_enabled           = var.public_network_access_enabled
   # role_assignments = {
   #   user_assigned_managed_identity = {
   #     principal_id               = var.user_assigned_identity_principal_id

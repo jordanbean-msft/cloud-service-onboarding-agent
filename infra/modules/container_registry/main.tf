@@ -34,6 +34,7 @@ module "avm-res-containerregistry-registry" {
       subnet_resource_id = var.private_endpoint_subnet_resource_id
     }
   }
-  zone_redundancy_enabled  = var.zone_redundancy_enabled
-  retention_policy_in_days = 0
+  private_endpoints_manage_dns_zone_group = false
+  zone_redundancy_enabled                 = var.zone_redundancy_enabled
+  retention_policy_in_days                = 0
 }

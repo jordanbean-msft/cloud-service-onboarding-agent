@@ -17,7 +17,7 @@ module "avm-res-app-containerapp" {
     containers = [
       for container in var.containers : {
         name   = container.name
-        image  = "${container.image != "" ? container.image : "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"}"
+        image  = "${container.image != "" ? container.image : "mcr.microsoft.com/k8se/quickstart:latest"}"
         cpu    = container.cpu
         memory = container.memory
       }
@@ -27,7 +27,7 @@ module "avm-res-app-containerapp" {
   }
   ingress = {
     external_enabled = var.ingress.external_enabled
-    target_port      = var.ingress.target_port
+    target_port      = var.containers[0].image != "" ? var.ingress.target_port : 80
     traffic_weight = [{
       latest_revision = true
       percentage      = 100
