@@ -16,6 +16,12 @@ data "azurerm_subnet" "container_apps_subnet" {
   resource_group_name  = var.resource_group_name
 }
 
+data "azurerm_subnet" "ai_foundry_agent_subnet" {
+  name                 = var.network.ai_foundry_agent_subnet_name
+  virtual_network_name = var.network.virtual_network_name
+  resource_group_name  = var.resource_group_name
+}
+
 # ------------------------------------------------------------------------------------------------------
 # Deploy Log Analytics Workspace
 # ------------------------------------------------------------------------------------------------------
@@ -94,6 +100,7 @@ module "virtual_network" {
   source                              = "./modules/virtual_network"
   container_apps_subnet_resource_id   = data.azurerm_subnet.container_apps_subnet.id
   private_endpoint_subnet_resource_id = data.azurerm_subnet.private_endpoint_subnet.id
+  ai_foundry_agent_subnet_resource_id = data.azurerm_subnet.ai_foundry_agent_subnet.id
 }
 
 # ------------------------------------------------------------------------------------------------------
@@ -172,8 +179,23 @@ module "cosmos_db" {
 # Deploy Bing Custom Search
 # ------------------------------------------------------------------------------------------------------
 
-module "bing_custom_search" {
-  source                              = "./modules/bing_custom_search"
+# module "bing_custom_search" {
+#   source                              = "./modules/bing_custom_search"
+#   name_suffix                         = local.resource_token
+#   location                            = var.location
+#   resource_group_name                 = var.resource_group_name
+#   log_analytics_workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
+#   public_network_access_enabled       = var.public_network_access_enabled
+#   private_endpoint_subnet_resource_id = module.virtual_network.private_endpoint_subnet_resource_id
+#   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
+# }
+
+# ------------------------------------------------------------------------------------------------------
+# Deploy AI Search
+# ------------------------------------------------------------------------------------------------------
+
+module "ai_search" {
+  source                              = "./modules/ai_search"
   name_suffix                         = local.resource_token
   location                            = var.location
   resource_group_name                 = var.resource_group_name
@@ -181,4 +203,24 @@ module "bing_custom_search" {
   public_network_access_enabled       = var.public_network_access_enabled
   private_endpoint_subnet_resource_id = module.virtual_network.private_endpoint_subnet_resource_id
   user_assigned_identity_principal_id = module.managed_identity.user_assigned_identity_principal_id
+}
+
+# -------------------------------------------------------------------------------------------------------
+# Deploy AI Foundry
+# -------------------------------------------------------------------------------------------------------
+
+module "ai_foundry" {
+  source                              = "./modules/ai_foundry"
+  name_suffix                         = local.resource_token
+  location                            = var.location
+  resource_group_name                 = var.resource_group_name
+  log_analytics_workspace_resource_id = module.log_analytics_workspace.log_analytics_workspace_resource_id
+  public_network_access_enabled       = var.public_network_access_enabled
+  private_endpoint_subnet_resource_id = module.virtual_network.private_endpoint_subnet_resource_id
+  user_assigned_identity_id           = module.managed_identity.user_assigned_identity_id
+  storage_account_resource_id         = module.storage_account.storage_account_id
+  cosmos_db_account_resource_id       = module.cosmos_db.cosmos_db_account_id
+  ai_search_resource_id               = module.ai_search.ai_search_id
+  cosmos_db_account_document_endpoint = module.cosmos_db.cosmos_db_account_document_endpoint
+  ai_foundry_agent_subnet_resource_id = module.virtual_network.ai_foundry_agent_subnet_resource_id
 }

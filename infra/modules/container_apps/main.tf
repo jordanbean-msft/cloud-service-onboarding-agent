@@ -6,6 +6,7 @@ module "avm-res-app-containerapp" {
   tags                                  = var.tags
   revision_mode                         = "Single"
   container_app_environment_resource_id = var.container_apps_environment_resource_id
+  workload_profile_name                 = "Consumption"
   managed_identities = {
     user_assigned_resource_ids = [var.user_assigned_identity_resource_id]
   }

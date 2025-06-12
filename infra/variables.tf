@@ -85,6 +85,7 @@ variable "network" {
     virtual_network_name         = string
     private_endpoint_subnet_name = string
     container_apps_subnet_name   = string
+    ai_foundry_agent_subnet_name = string
   })
 }
 

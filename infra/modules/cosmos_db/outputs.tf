@@ -7,3 +7,8 @@ output "cosmos_db_account_name" {
   description = "The name of the Cosmos DB account"
   value       = module.avm-res-documentdb-databaseaccount.name
 }
+
+output "cosmos_db_account_document_endpoint" {
+  description = "The document endpoint of the Cosmos DB account"
+  value       = ""
+}
