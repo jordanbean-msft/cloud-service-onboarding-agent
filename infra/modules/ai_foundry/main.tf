@@ -10,41 +10,36 @@ data "azapi_resource" "resource_group" {
 }
 
 resource "azapi_resource" "ai_foundry_account" {
-  type      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
-  name      = "afap-${module.naming.cognitive_account.name}"
-  location  = var.location
-  parent_id = data.azapi_resource.resource_group.id
+  type                      = "Microsoft.CognitiveServices/accounts@2025-04-01-preview"
+  name                      = "afa-${module.naming.cognitive_account.name}"
+  location                  = var.location
+  parent_id                 = data.azapi_resource.resource_group.id
+  schema_validation_enabled = false
   body = {
+    kind = "AIServices"
     sku = {
       name = "S0"
     }
-    kind = "AIServices"
     identity = {
       type = "SystemAssigned"
-      # type = "UserAssigned"
-      # userAssignedIdentities = {
-      #   "${var.user_assigned_identity_id}" = {}
-      # }
     }
     properties = {
-      publicNetworkAccess = var.public_network_access_enabled ? "Enabled" : "Disabled"
-      networkAcls = {
-        #bypass         = "AzureServices"
-        defaultAction       = "Allow"
-        virtualNetworkRules = []
-        ipRules             = []
-      }
-      customSubDomainName    = "afap-${module.naming.cognitive_account.name}"
       disableLocalAuth       = false
       allowProjectManagement = true
-      networkInjections = [{
-        scenario                   = "agent"
-        subnetArmId                = var.ai_foundry_agent_subnet_resource_id
-        useMicrosoftManagedNetwork = false
-      }]
+      customSubDomainName    = "afa-${module.naming.cognitive_account.name}"
+      publicNetworkAccess    = "Disabled"
+      networkAcls = {
+        defaultAction = "Allow"
+      }
+      networkInjections = [
+        {
+          scenario                   = "agent"
+          subnetArmId                = var.ai_foundry_agent_subnet_resource_id
+          useMicrosoftManagedNetwork = false
+        }
+      ]
     }
   }
-  schema_validation_enabled = false
 }
 
 module "avm-res-network-privateendpoint" {
@@ -59,28 +54,24 @@ module "avm-res-network-privateendpoint" {
   subresource_names              = ["account"]
 }
 
-# resource "azapi_resource" "ai_foundry_project" {
-#   type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
-#   name      = "project1"
-#   location  = var.location
-#   parent_id = resource.azapi_resource.ai_foundry_account.id
-#   depends_on = [
-#     module.avm-res-network-privateendpoint
-#   ]
-#   body = {
-#     identity = {
-#       type = "SystemAssigned"
-#       # type = "UserAssigned"
-#       # userAssignedIdentities = {
-#       #   "${var.user_assigned_identity_id}" = {}
-#       # }
-#     }
-#     properties = {
-#       description = "project1"
-#       displayName = "project1"
-#     }
-#   }
-# }
+resource "azapi_resource" "ai_foundry_project" {
+  type      = "Microsoft.CognitiveServices/accounts/projects@2025-04-01-preview"
+  name      = "project1"
+  location  = var.location
+  parent_id = resource.azapi_resource.ai_foundry_account.id
+  depends_on = [
+    module.avm-res-network-privateendpoint
+  ]
+  body = {
+    identity = {
+      type = "SystemAssigned"
+    }
+    properties = {
+      description = "project1"
+      displayName = "project1"
+    }
+  }
+}
 
 # resource "azapi_resource" "ai_foundry_project_connection_cosmos_db_account" {
 #   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
