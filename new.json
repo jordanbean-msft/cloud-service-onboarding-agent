@@ -1,0 +1,1747 @@
+{
+  "etag": "\"0f009e93-0000-0200-0000-684c34b60000\"",
+  "id": "/subscriptions/0ec6c427-01d3-4462-ae56-fd9656157157/resourceGroups/rg-cloud-service-onboarding-agent-dev/providers/Microsoft.CognitiveServices/accounts/afa-cog-yzfjzjy0zwizm",
+  "identity": {
+    "principalId": "daed7507-4897-4c1a-9658-1a90698b8d04",
+    "tenantId": "66beb9f0-9df6-4ded-8e48-126b39813500",
+    "type": "SystemAssigned"
+  },
+  "kind": "AIServices",
+  "location": "eastus2",
+  "name": "afa-cog-yzfjzjy0zwizm",
+  "properties": {
+    "allowProjectManagement": true,
+    "apiProperties": {
+      "qnaAzureSearchEndpointKey": null
+    },
+    "callRateLimit": {
+      "rules": [
+        {
+          "count": 20,
+          "key": "documentTranslation.post",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "translator/text/batch/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "documentTranslation.get",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "translator/text/batch/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "documentTranslation.default",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "translator/text/batch/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100,
+          "key": "textTranslation",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "translator/text/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "singledocumentTranslation.default",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "translator/document:translate"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "batchDocumentTranslation.post",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "translator/document/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "batchDocumentTranslation.get",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "translator/document/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "batchDocumentTranslation.default",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "translator/document/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 1000,
+          "key": "workflow.endpoint.postcalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/:analyze-conversations"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "key": "textAnalytics.conversations.jobs.getcalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-conversations/jobs/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "key": "textAnalytics.conversations.jobs.postcalls",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "language/analyze-conversations/jobs"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "key": "textAnalytics.analyzetext.postcalls",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "language/:analyze-text"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "key": "textAnalytics.analyzetext.jobs.getcalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-text/jobs/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 300,
+          "key": "textAnalytics.analyzetext.jobs.postcalls",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "language/analyze-text/jobs"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.analyzedocuments.jobs.getcalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-documents/jobs/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.analyzedocuments.jobs.postcalls",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "language/analyze-documents/jobs"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "key": "textAnalytics.generate.postcalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/:generate"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.authoring.customtext.getcalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-text/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 10,
+          "key": "textAnalytics.unifiedAuthoring.updatecalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/analyze-text/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.authoring.customtext.march.getcalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/authoring/analyze-text/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 10,
+          "key": "textAnalytics.unifiedAuthoring.march.updatecalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/authoring/analyze-text/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.authoring.customtext.internal.getcalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-text/internal/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 10,
+          "key": "textAnalytics.unifiedAuthoring.internal.updatecalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/analyze-text/internal/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.unifiedAuthoring.clu.getCalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-conversations/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 10,
+          "key": "textAnalytics.unifiedAuthoring.clu.updateCalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/analyze-conversations/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.unifiedAuthoring.clu.march.getCalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/authoring/analyze-conversations/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 10,
+          "key": "textAnalytics.unifiedAuthoring.clu.march.updateCalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/authoring/analyze-conversations/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.unifiedAuthoring.clu.internal.getCalls",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "language/analyze-conversations/internal/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 10,
+          "key": "textAnalytics.unifiedAuthoring.clu.internal.updateCalls",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/analyze-conversations/internal/projects/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "textAnalytics.customText",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "text/analytics/v3.1-preview.ct.1/analyze/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 300,
+          "dynamicThrottlingEnabled": true,
+          "key": "textAnalytics.analyze",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "text/analytics/v3.1/analyze/*"
+            },
+            {
+              "method": "*",
+              "path": "text/analytics/v3.2-preview.1/analyze/*"
+            },
+            {
+              "method": "*",
+              "path": "text/analytics/v3.2-preview.2/analyze/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 300,
+          "key": "textAnalytics.healthcare",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "text/analytics/v3.1/entities/health"
+            },
+            {
+              "method": "*",
+              "path": "text/analytics/v3.2-preview.1/health"
+            },
+            {
+              "method": "*",
+              "path": "text/analytics/v3.2-preview.2/health"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "key": "textAnalytics.languagedetection",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "text/analytics/v3.1/languages"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "textAnalytics",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "text/analytics/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 600,
+          "key": "questionanswering",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "qnamaker/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 3,
+          "key": "unifiedlanguage.questionanswering",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/query-knowledgebases/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 10,
+          "key": "unifiedlanguage.questionanswering.inference",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "language/:query-*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 150,
+          "key": "textAnalytics.analyze.internal.autoTagging",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "TextAnalytics/ct-auto-tagging"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 150,
+          "key": "textAnalytics.analyze.internal.evaluation",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "TextAnalytics/ct-evaluation"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 50,
+          "key": "token",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "sts/v1.0/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 200,
+          "key": "speech.synthesize",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/synthesize"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 200,
+          "key": "speech.customvoicesynthesize",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/customvoicesynthesize"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 200,
+          "key": "speech.neuralvoicesynthesize",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/neuralvoicesynthesize"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 10,
+          "key": "speech.aoaivoicesynthesize",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/aoaivoicesynthesize"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 3,
+          "key": "speech.aoaihdvoicesynthesize",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/aoaihdvoicesynthesize"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 200,
+          "key": "speech.customneuralvoicesynthesize",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/customneuralvoicesynthesize"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 1,
+          "key": "speech.liveavatarconnect",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/liveavatarconnect"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 200,
+          "key": "speech.livecustomavatarconnect",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/livecustomavatarconnect"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 2,
+          "key": "speech.batchavatarcreate",
+          "matchPatterns": [
+            {
+              "method": "PUT",
+              "path": "avatar/batchsyntheses/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "speech.conversationtranscription",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speech/singlechannelaudioconversationtranscription"
+            },
+            {
+              "method": "*",
+              "path": "speech/multichannelaudioconversationtranscribe"
+            },
+            {
+              "method": "*",
+              "path": "speech/videoconversationtranscribe"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100,
+          "key": "speech.speechtotext",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speechtotext/*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "key": "speech.batchtexttospeechcreate",
+          "matchPatterns": [
+            {
+              "method": "PUT",
+              "path": "texttospeech/batchsyntheses/*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "key": "speech.texttospeech",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "texttospeech/*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "key": "speech.customvoice",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "customvoice/*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 20,
+          "key": "speech.speakerrecognitionv2",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "speaker/*"
+            },
+            {
+              "method": "*",
+              "path": "speaker-recognition/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 5,
+          "key": "speech.speakerrecognitionv1",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "spid/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 15,
+          "dynamicThrottlingEnabled": true,
+          "key": "formrecognizer.analyze",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/models/{id}/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/models/{modelId}/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/prebuilt/businessCard/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/prebuilt/idDocument/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/prebuilt/invoice/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/layout/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/prebuilt/receipt/analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/prebuilt/receipt/asyncBatchAnalyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentModels/{modelId}:analyze"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/read"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentClassifiers/{classifierId}:analyze"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels/{modelId}:analyze"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels/{modelId}:analyze?_overload=analyzeDocument"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentClassifiers/{classifierId}:analyze"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentClassifiers/{classifierId}:analyze?_overload=classifyDocument"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels/{modelId}:analyzeBatch"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 50,
+          "dynamicThrottlingEnabled": true,
+          "key": "formrecognizer.get.object",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models/{modelId}/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/prebuilt/businessCard/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/prebuilt/idDocument/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/prebuilt/invoice/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/prebuilt/receipt/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/prebuilt/receipt/operations/{operationId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/documentModels/{modelId}/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/layout/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models/{modelId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models/{modelId}/copyResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/operations/{operationId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models/{modelId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models/{id}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/documentModels/{modelId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/documentClassifiers/{classifierId}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/documentClassifiers/{classifierId}/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels/{modelId}/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/operations/{operationId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/operations/{operationId}?_overload={_overload}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels/{modelId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentClassifiers/{classifierId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentClassifiers/{classifierId}/analyzeResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels/{modelId}/analyzeBatchResults/{resultId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels/{modelId}/analyzeResults/{resultId}/figures/{figureId}"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels/{modelId}/analyzeResults/{resultId}/pdf"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 10,
+          "dynamicThrottlingEnabled": true,
+          "key": "formrecognizer.list.objects",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "formrecognizer/operations"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/info"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/documentModels"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/documentClassifiers"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/operations"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/info"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentClassifiers"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/documentModels/{modelId}/analyzeBatchResults"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 5,
+          "dynamicThrottlingEnabled": true,
+          "key": "formrecognizer.model.management",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/models"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/models/compose"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/models/copyAuthorization"
+            },
+            {
+              "method": "DELETE",
+              "path": "formrecognizer/custom/models/{id}"
+            },
+            {
+              "method": "GET",
+              "path": "formrecognizer/custom/models/{id}/keys"
+            },
+            {
+              "method": "DELETE",
+              "path": "formrecognizer/custom/models/{modelId}"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/models/{modelId}/copy"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentModels/{modelId}:copyTo"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentModels:authorizeCopy"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentModels:build"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentModels:compose"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/custom/train"
+            },
+            {
+              "method": "DELETE",
+              "path": "formrecognizer/custom/models/{modelId}"
+            },
+            {
+              "method": "DELETE",
+              "path": "formrecognizer/documentModels/{modelId}"
+            },
+            {
+              "method": "POST",
+              "path": "formrecognizer/documentClassifiers:build"
+            },
+            {
+              "method": "DELETE",
+              "path": "formrecognizer/documentClassifiers/{classifierId}"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels:authorizeCopy"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels/{modelId}:copyTo"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels:build"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentModels:compose"
+            },
+            {
+              "method": "DELETE",
+              "path": "documentintelligence/documentModels/{modelId}"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentClassifiers:build"
+            },
+            {
+              "method": "DELETE",
+              "path": "documentintelligence/documentClassifiers/{classifierId}"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentClassifiers/{classifierId}:copyTo"
+            },
+            {
+              "method": "POST",
+              "path": "documentintelligence/documentClassifiers:authorizeCopy"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 15,
+          "key": "formrecognizer.chat.build",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "documentintelligence/chat:build"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 5,
+          "key": "formrecognizer.chat.complete",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "documentintelligence/chat/{chatId}:complete"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "formrecognizer.labeling",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "documentintelligence/labelingProjects/*"
+            },
+            {
+              "method": "*",
+              "path": "documentintelligence/classificationProjects/*"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/labelingProjects"
+            },
+            {
+              "method": "GET",
+              "path": "documentintelligence/classificationProjects"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 30,
+          "dynamicThrottlingEnabled": true,
+          "key": "vision.recognizeText",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "vision/recognizeText"
+            },
+            {
+              "method": "GET",
+              "path": "vision/textOperations/*"
+            },
+            {
+              "method": "*",
+              "path": "vision/read/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "dynamicThrottlingEnabled": true,
+          "key": "vision",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "vision/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 500,
+          "key": "container.billing",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "billing/*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 10,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.List",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text/blocklists*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 50,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextGroundedDetection",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:detectGroundedness*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextShieldPrompt",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:shieldPrompt*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextDetectIncidents",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:detectIncidents*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 5,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextAnalyzeCustomCategory",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:analyzeCustomCategory*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 10,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextAutoReview",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:autoReview*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 10,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.GPTFeature",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:detectungroundedness*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextJailbreak",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:detectJailbreak*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextProtectedMaterial",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text:detectProtectedMaterial*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.Unified1PAPI",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/analyze1p*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.AnalyzeWithRaiPolicyAPI",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/analyzeWithRaiPolicy*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.UnifiedAPI",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/analyze*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.RaiPoliciesAPI",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/raiPolicies*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextIncidentResponse",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text/incidents*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextAutoReviewers",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text/autoReviewers*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 5,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.TextCustomCategories",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text/categories*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.Text",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/text*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 10,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.ImageWithText",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/imageWithText*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.ImageDetectIncidents",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/image:detectIncidents*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.ImageIncidentResponse",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/image/incidents*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 1000,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.Image",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/image*"
+            }
+          ],
+          "renewalPeriod": 10
+        },
+        {
+          "count": 30,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.Project",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/projects*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.Metrics",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/metrics*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafety.Feature",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/whitelist*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafetyInternal.Metrics",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/internal/metrics*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100,
+          "dynamicThrottlingEnabled": true,
+          "key": "ContentSafetyInternal.Feature",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "contentsafety/internal/whitelist*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 30000,
+          "key": "models",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "/models"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 30,
+          "key": "openai.dalle.post",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "dalle/*"
+            },
+            {
+              "method": "POST",
+              "path": "openai/images/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 30,
+          "key": "openai.dalle.other",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "dalle/*"
+            },
+            {
+              "method": "*",
+              "path": "openai/operations/images/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 120,
+          "key": "openai.assistants.list",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "openai/assistants"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 120,
+          "key": "openai.threads.list",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "openai/threads"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 120,
+          "key": "openai.vectorstores.list",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "openai/vector_stores"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100000,
+          "key": "openai.assistants.default",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "openai/assistants"
+            },
+            {
+              "method": "*",
+              "path": "openai/assistants/*"
+            },
+            {
+              "method": "*",
+              "path": "openai/threads"
+            },
+            {
+              "method": "*",
+              "path": "openai/threads/*"
+            },
+            {
+              "method": "*",
+              "path": "openai/vector_stores"
+            },
+            {
+              "method": "*",
+              "path": "openai/vector_stores/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 100000,
+          "key": "openai.responses.default",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "openai/responses"
+            },
+            {
+              "method": "*",
+              "path": "openai/responses/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 30,
+          "key": "openai.batches.post",
+          "matchPatterns": [
+            {
+              "method": "POST",
+              "path": "openai/v1/batches"
+            },
+            {
+              "method": "POST",
+              "path": "openai/batches"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 500,
+          "key": "openai.batches.get",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "openai/v1/batches/*"
+            },
+            {
+              "method": "GET",
+              "path": "openai/batches/*"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 100,
+          "key": "openai.batches.list",
+          "matchPatterns": [
+            {
+              "method": "GET",
+              "path": "openai/v1/batches"
+            },
+            {
+              "method": "GET",
+              "path": "openai/batches"
+            }
+          ],
+          "renewalPeriod": 60
+        },
+        {
+          "count": 30,
+          "key": "openai",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "openai/*"
+            }
+          ],
+          "renewalPeriod": 1
+        },
+        {
+          "count": 20,
+          "key": "default",
+          "matchPatterns": [
+            {
+              "method": "*",
+              "path": "*"
+            }
+          ],
+          "renewalPeriod": 1
+        }
+      ]
+    },
+    "capabilities": [
+      {
+        "name": "VirtualNetworks"
+      },
+      {
+        "name": "TrustedServices",
+        "value": "Microsoft.CognitiveServices,Microsoft.MachineLearningServices,Microsoft.Search"
+      },
+      {
+        "name": "CustomerManagedKey"
+      },
+      {
+        "name": "MaxFineTuneCount",
+        "value": "500"
+      },
+      {
+        "name": "MaxRunningFineTuneCount",
+        "value": "1"
+      },
+      {
+        "name": "MaxUserFileCount",
+        "value": "100"
+      },
+      {
+        "name": "MaxTrainingFileSize",
+        "value": "512000000"
+      },
+      {
+        "name": "MaxUserFileImportDurationInHours",
+        "value": "1"
+      },
+      {
+        "name": "MaxFineTuneJobDurationInHours",
+        "value": "720"
+      },
+      {
+        "name": "MaxEvaluationRunDurationInHours",
+        "value": "5"
+      },
+      {
+        "name": "MaxRunningEvaluationCount",
+        "value": "5"
+      },
+      {
+        "name": "Container",
+        "value": "ContentSafety.*,ContentSafety.TextAnalyze,ContentSafety.ImageAnalyze,ComputerVision.*,ComputerVision.VideoAnalytics,ComputerVision.ComputerVisionRead,ComputerVision.ocr,ComputerVision.readfile,ComputerVision.readfiledsd,ComputerVision.recognizetext,ComputerVision.ComputerVision,ComputerVision.ocrlayoutworker,ComputerVision.ocrcontroller,ComputerVision.ocrdispatcher,ComputerVision.ocrbillingprocessor,ComputerVision.ocranalyzer,ComputerVision.ocrpagesplitter,ComputerVision.ocrapi,ComputerVision.ocrengineworker,FormRecognizer.*,FormRecognizer.Forms,FormRecognizer.FormRecognizerCustomSupervised,FormRecognizer.FormRecognizerLayout,FormRecognizer.formrecognizerreadlayout,FormRecognizer.FormRecognizerId,FormRecognizer.FormRecognizerInvoice,FormRecognizer.FormRecognizerReceipt,FormRecognizer.FormRecognizerBusinessCard,FormRecognizer.FormRecognizerRead,FormRecognizer.FormRecognizerKvp,SpeechServices.*,SpeechServices.CustomSpeechToText,SpeechServices.NeuralTextToSpeechOnPrem,SpeechServices.DPP,SpeechServices.SpeechToText,SpeechServices.ctsdiarizer,SpeechServices.diarization,TextAnalytics.*,TextAnalytics.Healthcare,TextAnalytics.EntityV3,TextAnalytics.EntityONNX,TextAnalytics.Keyphrase,TextAnalytics.KeyphraseV2,TextAnalytics.KeyPhraseONNX,TextAnalytics.LanguageFastText,TextAnalytics.Language,TextAnalytics.LanguageV2,TextAnalytics.Sentiment,TextAnalytics.SentimentV2,TextAnalytics.SentimentV3,TextAnalytics.SentimentV3Preview,TextAnalytics.SentimentONNX,TextAnalytics.CustomNER,TextAnalytics.textanalyticsdispatcher,TextAnalytics.SummarizationFrontend,TextAnalytics.SummarizationWorker,TextAnalytics.PII,TextAnalytics.CluRuntime,TextAnalytics.CluContainer,TextAnalytics.NER,TextTranslation.*"
+      },
+      {
+        "name": "Cloud",
+        "value": "TextAnalytics.Healthcare,TextAnalytics.Analyze,QuestionAnswer.AllApis,LanguageService.QuestionAnsweringApis"
+      }
+    ],
+    "customSubDomainName": "afacog-yzfjzjy0zwizm",
+    "dateCreated": "2025-06-13T14:23:38.1485612Z",
+    "disableLocalAuth": false,
+    "endpoint": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+    "endpoints": {
+      "AI Foundry API": "https://afacog-yzfjzjy0zwizm.services.ai.azure.com/",
+      "Azure AI Model Inference API": "https://afacog-yzfjzjy0zwizm.services.ai.azure.com/",
+      "Cohere AI API": "https://afacog-yzfjzjy0zwizm.services.ai.azure.com/",
+      "Computer Vision": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Container": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Content Safety": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Conversational Language Understanding Authoring": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "ConversationalLURuntime": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Custom Question Answering": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Custom Question Answering Authoring": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Custom Text Authoring": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "CustomTranslator": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "DocumentTranslation": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "FormRecognizer": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "LUIS": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Language": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Mistral AI API": "https://afacog-yzfjzjy0zwizm.services.ai.azure.com/",
+      "OpenAI Dall-E API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "OpenAI Language Model Instance API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "OpenAI Model Scaleset API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "OpenAI Moderations API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "OpenAI Realtime API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "OpenAI Sora API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "OpenAI Whisper API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "QnAMaker": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "QuestionAnswering": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Audio Content Creation": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Batch Avatar": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Batch Text to Speech": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Custom Avatar": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Custom Voice": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Custom Voice Trial": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speaker Identification": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speaker Verification": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speech to Text": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speech to Text (Standard)": "https://eastus2.stt.speech.microsoft.com",
+      "Speech Services Speech to Text 2024-05-15-preview": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speech to Text 2024-11-15": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speech to Text v3.2": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Speech to Text v3.2_internal.1": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Speech Services Text to Speech (Neural)": "https://eastus2.tts.speech.microsoft.com",
+      "Text Analytics": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "TextTranslation": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "TextTranslation-Global": "https://api.cognitive.microsofttranslator.com/",
+      "Token": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Token Service API": "https://afacog-yzfjzjy0zwizm.openai.azure.com/",
+      "Turing": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Video Translation": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Voice Agent Realtime API": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/",
+      "Voice Live Realtime API": "https://afacog-yzfjzjy0zwizm.cognitiveservices.azure.com/"
+    },
+    "internalId": "4d953dccfc4b48a197cb20ea3fecfddd",
+    "isMigrated": false,
+    "networkAcls": {
+      "defaultAction": "Allow",
+      "ipRules": [],
+      "virtualNetworkRules": []
+    },
+    "networkInjections": [
+      {
+        "scenario": "agent",
+        "subnetArmId": "/subscriptions/0ec6c427-01d3-4462-ae56-fd9656157157/resourceGroups/rg-cloud-service-onboarding-agent-dev/providers/Microsoft.Network/virtualNetworks/vnet-cloud-service-onboarding-agent-dev/subnets/ai-agent-service",
+        "useMicrosoftManagedNetwork": false
+      }
+    ],
+    "privateEndpointConnections": [
+      {
+        "id": "/subscriptions/0ec6c427-01d3-4462-ae56-fd9656157157/resourceGroups/rg-cloud-service-onboarding-agent-dev/providers/Microsoft.CognitiveServices/accounts/afa-cog-yzfjzjy0zwizm/privateEndpointConnections/pe-afa-cog-yzfjzjy0zwizm.c02c0f77-ca46-4868-9a55-49c8c309d0f1",
+        "name": "afa-cog-yzfjzjy0zwizm/pe-afa-cog-yzfjzjy0zwizm.c02c0f77-ca46-4868-9a55-49c8c309d0f1",
+        "properties": {
+          "groupIds": [
+            "account"
+          ],
+          "privateEndpoint": {
+            "id": "/subscriptions/0ec6c427-01d3-4462-ae56-fd9656157157/resourceGroups/rg-cloud-service-onboarding-agent-dev/providers/Microsoft.Network/privateEndpoints/pe-afa-cog-yzfjzjy0zwizm"
+          },
+          "privateLinkServiceConnectionState": {
+            "actionsRequired": "None",
+            "description": "Approved",
+            "status": "Approved"
+          }
+        },
+        "type": "Microsoft.CognitiveServices/accounts/privateEndpointConnections"
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "publicNetworkAccess": "Disabled"
+  },
+  "sku": {
+    "name": "S0"
+  },
+  "systemData": {
+    "createdAt": "2025-06-13T14:23:34.8282785Z",
+    "createdBy": "jordanbean@microsoft.com",
+    "createdByType": "User",
+    "lastModifiedAt": "2025-06-13T14:23:34.8282785Z",
+    "lastModifiedBy": "jordanbean@microsoft.com",
+    "lastModifiedByType": "User"
+  },
+  "type": "Microsoft.CognitiveServices/accounts"
+}
