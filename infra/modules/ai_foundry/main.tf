@@ -27,7 +27,7 @@ resource "azapi_resource" "ai_foundry_account" {
       disableLocalAuth       = false
       allowProjectManagement = true
       customSubDomainName    = "afa-${module.naming.cognitive_account.name}"
-      publicNetworkAccess    = "Disabled"
+      publicNetworkAccess    = var.public_network_access_enabled ? "Enabled" : "Disabled"
       networkAcls = {
         defaultAction = "Allow"
       }
@@ -73,70 +73,71 @@ resource "azapi_resource" "ai_foundry_project" {
   }
 }
 
-# resource "azapi_resource" "ai_foundry_project_connection_cosmos_db_account" {
-#   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-#   name      = "cosmosdb"
-#   parent_id = resource.azapi_resource.ai_foundry_project.id
-#   body = {
-#     properties = {
-#       category = "CosmosDB"
-#       target   = var.cosmos_db_account_document_endpoint
-#       authType = "AAD"
-#       metadata = {
-#         ApiType    = "Azure"
-#         ResourceId = var.cosmos_db_account_resource_id
-#         location   = var.location
-#       }
-#     }
-#   }
-# }
+resource "azapi_resource" "ai_foundry_project_connection_cosmos_db_account" {
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = "cosmosdb"
+  parent_id = resource.azapi_resource.ai_foundry_project.id
+  body = {
+    properties = {
+      category = "CosmosDB"
+      target   = var.cosmos_db_account_document_endpoint
+      authType = "AAD"
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = var.cosmos_db_account_resource_id
+        location   = var.location
+      }
+    }
+  }
+}
 
-# resource "azapi_resource" "ai_foundry_project_connection_storage_account" {
-#   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-#   name      = "storage"
-#   parent_id = resource.azapi_resource.ai_foundry_project.id
-#   body = {
-#     properties = {
-#       category = "Storage"
-#       target   = var.storage_account_resource_id
-#       authType = "AAD"
-#       metadata = {
-#         ApiType    = "Azure"
-#         ResourceId = var.storage_account_resource_id
-#         location   = var.location
-#       }
-#     }
-#   }
-# }
+resource "azapi_resource" "ai_foundry_project_connection_storage_account" {
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = "storage"
+  parent_id = resource.azapi_resource.ai_foundry_project.id
+  body = {
+    properties = {
+      category = "AzureStorageAccount"
+      target   = var.storage_account_primary_blob_endpoint
+      authType = "AAD"
+      metadata = {
+        ApiType    = "Azure"
+        ResourceId = var.storage_account_resource_id
+        location   = var.location
+      }
+    }
+  }
+}
 
-# resource "azapi_resource" "ai_foundry_project_connection_ai_search" {
-#   type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
-#   name      = "search"
-#   parent_id = resource.azapi_resource.ai_foundry_project.id
-#   body = {
-#     properties = {
-#       category = "Search"
-#       target   = var.ai_search_resource_id
-#       authType = "AAD"
-#       metadata = {
-#         ApiType    = "Azure"
-#         ResourceId = var.ai_search_resource_id
-#         location   = var.location
-#       }
-#     }
-#   }
-# }
+resource "azapi_resource" "ai_foundry_project_connection_ai_search" {
+  type      = "Microsoft.CognitiveServices/accounts/projects/connections@2025-04-01-preview"
+  name      = "search"
+  parent_id = resource.azapi_resource.ai_foundry_project.id
+  body = {
+    properties = {
+      category = "CognitiveSearch"
+      target   = "https://${var.ai_search_name}.search.windows.net"
+      authType = "AAD"
+      metadata = {
+        ApiType    = "Azure"
+        ApiVersion = "2024-05-01-preview"
+        ResourceId = var.ai_search_resource_id
+        location   = var.location
+      }
+    }
+  }
+}
 
-# resource "azapi_resource" "ai_foundry_project_capability_hosts" {
-#   type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
-#   name      = "project-capability-host"
-#   parent_id = resource.azapi_resource.ai_foundry_project.id
-#   body = {
-#     properties = {
-#       capabilityHostKind       = "Agents"
-#       vectorStoreConnections   = [resource.azapi_resource.ai_foundry_project_connection_ai_search.name]
-#       storageConnections       = [resource.azapi_resource.ai_foundry_project_connection_storage_account.name]
-#       threadStorageConnections = [resource.azapi_resource.ai_foundry_project_connection_cosmos_db_account.name]
-#     }
-#   }
-# }
+resource "azapi_resource" "ai_foundry_project_capability_hosts" {
+  type      = "Microsoft.CognitiveServices/accounts/projects/capabilityHosts@2025-04-01-preview"
+  name      = "project-capability-host"
+  parent_id = resource.azapi_resource.ai_foundry_project.id
+  body = {
+    properties = {
+      capabilityHostKind       = "Agents"
+      vectorStoreConnections   = [resource.azapi_resource.ai_foundry_project_connection_ai_search.name]
+      storageConnections       = [resource.azapi_resource.ai_foundry_project_connection_storage_account.name]
+      threadStorageConnections = [resource.azapi_resource.ai_foundry_project_connection_cosmos_db_account.name]
+    }
+  }
+}

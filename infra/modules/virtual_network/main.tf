@@ -24,9 +24,10 @@ resource "azapi_update_resource" "add_subnet_delegation_for_ai_foundry_agent_sub
     properties = {
       delegations = [
         {
-          name = "aca-delegation"
+          name = "Microsoft.App/environments"
           properties = {
             serviceName = "Microsoft.App/environments"
+            actions     = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
           }
         }
       ]

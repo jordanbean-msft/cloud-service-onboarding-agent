@@ -49,6 +49,11 @@ variable "storage_account_resource_id" {
   type        = string
 }
 
+variable "storage_account_primary_blob_endpoint" {
+  description = "The primary blob endpoint of the storage account for AI Foundry"
+  type        = string
+}
+
 variable "cosmos_db_account_resource_id" {
   description = "The resource ID of the Cosmos DB account for AI Foundry"
   type        = string
@@ -56,6 +61,11 @@ variable "cosmos_db_account_resource_id" {
 
 variable "ai_search_resource_id" {
   description = "The resource ID of the AI Search account for AI Foundry"
+  type        = string
+}
+
+variable "ai_search_name" {
+  description = "The name of the AI Search account for AI Foundry"
   type        = string
 }
 
